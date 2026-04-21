@@ -13,3 +13,7 @@ type puzzle = {
   title : string;
   root : node;
 }
+
+type label_part =
+  | Text of string
+  | Slot of int
