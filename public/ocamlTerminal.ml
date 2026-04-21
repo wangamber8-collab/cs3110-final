@@ -3,8 +3,8 @@
 open Lwt.Syntax
 
 let clients : Dream.websocket list ref = ref []
-let bracket = ref "What class do we take together"
-let answer = ref "3110"
+let bracket = ref "our group name"
+let answer = ref "group 67"
 let remove_client ws = clients := List.filter (fun c -> c != ws) !clients
 
 let broadcast msg =
@@ -13,14 +13,16 @@ let broadcast msg =
       Lwt.catch (fun () -> Dream.send ws msg) (fun _ -> Lwt.return_unit))
     (*pushes messages to page*) !clients
 
+let broadcast_bracket () = broadcast ("BRACKET|" ^ !bracket)
+
 let handle_guess guess =
-  if guess = !answer then (
+  if String.trim guess = !answer then (
     print_endline "correct";
     bracket := guess;
-    broadcast ("[" ^ !answer ^ "]"))
+    broadcast_bracket ())
   else (
     print_endline "Incorrect";
-    broadcast ("[" ^ !bracket ^ "]"))
+    Lwt.return_unit)
 
 let rec stdin_loop () =
   let* line_opt = Lwt_io.read_line_opt Lwt_io.stdin in
@@ -36,7 +38,7 @@ let ws_handler _req =
       clients := ws :: !clients;
       Lwt.finalize
         (fun () ->
-          let* () = Dream.send ws ("[" ^ !bracket ^ "]") in
+          let* () = Dream.send ws ("BRACKET|" ^ !bracket) in
           let rec keep_open () =
             let* msg = Dream.receive ws in
             (*recieves browser messages*)
@@ -56,6 +58,7 @@ let () =
   Dream.run @@ Dream.logger
   @@ Dream.router
        [
-         Dream.get "/" (Dream.from_filesystem "public" "printOcaml.html");
+         Dream.get "/" (Dream.from_filesystem "public" "game.html");
          Dream.get "/ws" ws_handler;
+         Dream.get "/**" (Dream.static "public");
        ]
