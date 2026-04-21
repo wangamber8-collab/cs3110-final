@@ -1,18 +1,4 @@
-(* OCaml AST for all Bracket City puzzles *)
-
-type node =
-  | Text    of string
-  | Bracket of { clue : node list; answer : string }
-
-type puzzle_ast = {
-  id         : int;
-  difficulty : string;
-  theme      : string;
-  nodes      : node list;
-}
-
-let puzzles : puzzle_ast list = [
-  {
+{
     id         = 1;
     difficulty = "easy";
     theme      = "space exploration";
@@ -842,4 +828,3 @@ let puzzles : puzzle_ast list = [
     Text "."
     ]
   };
-]
