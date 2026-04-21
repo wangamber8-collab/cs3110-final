@@ -1,6 +1,7 @@
 open Types
 open Yojson.Basic.Util
 
+(*parses bracket information in puzzle into node*)
 let rec parse_node json =
   {
     label = json |> member "label" |> to_string;
