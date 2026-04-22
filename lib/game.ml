@@ -18,8 +18,35 @@ let normalize (_s : string) : string = failwith "TODO"
    EXAMPLE: "like most {0}lin and {1} movies" -> [ Text "like most "; Slot 0;
    Text "lin and "; Slot 1; Text " movies" ] NOTE: this does NOT recurse into
    children. Nesting is handled by render_node, which calls itself on
-   children.(i) when it sees Slot i. *)
-let tokenize_label (_label : string) : label_part list = failwith "TODO"
+   children.(i) when it sees Slot i. A '{' not followed by digits+'}' is kept
+   as literal text. Adjacent slots (e.g. "{0}{1}") produce NO empty Text
+   between them. *)
+let tokenize_label (label : string) : label_part list =
+  let n = String.length label in
+  (* scan_digits i: walk forward over ASCII digits starting at i.
+     Returns (index_after_digits, digit_string). Empty string means no digits. *)
+  let rec scan_digits i =
+    if i < n && label.[i] >= '0' && label.[i] <= '9' then
+      let e, s = scan_digits (i + 1) in
+      (e, String.make 1 label.[i] ^ s)
+    else (i, "")
+  in
+  (* Only emit Text when the buffer is non-empty — this is what keeps adjacent
+     slots from producing a spurious Text "" between them. *)
+  let flush buf acc = if buf = "" then acc else Text buf :: acc in
+  let rec aux i buf acc =
+    if i >= n then List.rev (flush buf acc)
+    else if label.[i] = '{' then
+      let j, digits = scan_digits (i + 1) in
+      if digits <> "" && j < n && label.[j] = '}' then
+        (* Valid {N}: flush text buffer, emit Slot, skip past '}'. *)
+        aux (j + 1) "" (Slot (int_of_string digits) :: flush buf acc)
+      else
+        (* Stray '{' — treat as literal text and keep scanning. *)
+        aux (i + 1) (buf ^ "{") acc
+    else aux (i + 1) (buf ^ String.make 1 label.[i]) acc
+  in
+  aux 0 "" []
 
 (* PURPOSE: render one node to its display string in the current state. Called
    recursively — a node's slots are filled by rendering its children. STEPS: 1.
