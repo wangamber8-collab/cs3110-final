@@ -9,9 +9,9 @@
     already carries a [solved] flag set to [false] on every node. *)
 type state = Types.puzzle
 
-(** [normalize s] returns [s] trimmed and lowercased so that user input can be
+(** [normalize s] returns [s] trimmed and uppercased so that user input can be
     compared to a node's answer regardless of case or surrounding whitespace.
-    Internal whitespace is preserved (e.g. "Apollo 11" stays "apollo 11"). *)
+    Internal whitespace is preserved (e.g. "Apollo 11" stays "APOLLO 11"). *)
 val normalize : string -> string
 
 (** [tokenize_label label] splits a label on [{N}] placeholders, returning an

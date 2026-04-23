@@ -6,11 +6,11 @@ type state = puzzle
 
 (* PURPOSE: canonicalize a string for answer comparison so "July", " July ", and
    "july" all match the same node. STEPS: 1. Trim leading/trailing whitespace.
-   2. Lowercase every ASCII letter. NOTE: internal whitespace is preserved —
+   2. Uppercase every ASCII letter. NOTE: internal whitespace is preserved —
    answers like "Apollo 11" need the space between tokens. *)
 let normalize (s : string) : string =
-  let lower = String.lowercase_ascii s in
-  String.trim lower
+  let upper = String.uppercase_ascii s in
+  String.trim upper
 
 (* PURPOSE: split a label on {N} placeholders into alternating literal text and
    slot markers. The ONLY place that understands {N} syntax — the parser and
