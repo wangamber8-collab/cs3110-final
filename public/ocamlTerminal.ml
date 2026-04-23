@@ -58,7 +58,8 @@ let () =
   Dream.run @@ Dream.logger
   @@ Dream.router
        [
-         Dream.get "/" (Dream.from_filesystem "public" "game.html");
+         Dream.get "/" (Dream.from_filesystem "public" "index.html");
+         Dream.get "/game" (Dream.from_filesystem "public" "game.html");
          Dream.get "/ws" ws_handler;
          Dream.get "/**" (Dream.static "public");
        ]
