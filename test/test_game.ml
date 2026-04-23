@@ -1,9 +1,21 @@
 open OUnit2
 open Cs3110_final.Types
 open Cs3110_final.Parser
+open Cs3110_final.Game
 
+(** list of puzzles from the json file*)
 let puzzles = load_puzzles "../data/ver2_NESTED_puzzles.json"
-let puzzle = List.hd puzzles
+
+(** the first puzzle in the list of loaded puzzles*)
+let puzzle = choose_puzzle "hard" puzzles |> Option.get
+
+(* Pretty-print a label_part list so assert_equal failures are readable. *)
+let string_of_part = function
+  | Text s -> Printf.sprintf "Text %S" s
+  | Slot i -> Printf.sprintf "Slot %d" i
+
+let string_of_parts parts =
+  "[" ^ String.concat "; " (List.map string_of_part parts) ^ "]"
 
 let tests =
   "test suite"
@@ -28,6 +40,63 @@ let tests =
            assert_equal 2 (List.length children);
            assert_equal "G" (List.hd children).answer;
            assert_equal "silent" (List.hd (List.hd children).children).answer );
+         ( "tokenize_label handles text-slot-text-slot-text (spec example)"
+         >:: fun _ ->
+           assert_equal
+             [
+               Text "like most ";
+               Slot 0;
+               Text "lin and ";
+               Slot 1;
+               Text " movies";
+             ]
+             (tokenize_label "like most {0}lin and {1} movies")
+             ~printer:string_of_parts );
+         ( "tokenize_label emits no empty Text between adjacent slots"
+         >:: fun _ ->
+           assert_equal
+             [ Slot 0; Slot 1; Text " makes its 100 millionth car" ]
+             (tokenize_label "{0}{1} makes its 100 millionth car")
+             ~printer:string_of_parts );
+         ( "tokenize_label returns a single Text when no placeholders exist"
+         >:: fun _ ->
+           assert_equal
+             [ Text "stick for dry lips" ]
+             (tokenize_label "stick for dry lips")
+             ~printer:string_of_parts );
+         ( "tokenize_label handles a slot at the very start (no leading Text)"
+         >:: fun _ ->
+           assert_equal [ Slot 0; Text "lin" ] (tokenize_label "{0}lin")
+             ~printer:string_of_parts );
+         ( "tokenize_label parses multi-digit slot indices" >:: fun _ ->
+           assert_equal
+             [ Slot 10; Text "x"; Slot 2 ]
+             (tokenize_label "{10}x{2}")
+             ~printer:string_of_parts );
+         ( "tokenize_label treats a stray '{' with no closing '}' as literal \
+            text"
+         >:: fun _ ->
+           assert_equal
+             [ Text "cost is {5 dollars" ]
+             (tokenize_label "cost is {5 dollars")
+             ~printer:string_of_parts );
+         ( "choose_puzzle returns a random puzzle with the right difficulty \
+            and None if there are no puzzles"
+         >:: fun _ ->
+           let difficult_puzzle = choose_puzzle "hard" puzzles in
+
+           match difficult_puzzle with
+           | None -> assert_failure "Expected Some but got None"
+           | Some p ->
+               assert_equal "hard" p.difficulty;
+
+               let easy_puzzle = Option.get (choose_puzzle "easy" puzzles) in
+               assert_equal "computer science" easy_puzzle.theme;
+               let no_puzzle = choose_puzzle "medium" puzzles in
+               assert_equal None no_puzzle );
+         ( "testing normalize function" >:: fun _ ->
+           let word = "    good   " in
+           assert_equal "GOOD" (normalize word) );
        ]
 
 let _ = run_test_tt_main tests

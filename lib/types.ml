@@ -3,7 +3,7 @@ type node = {
   label : string;
   answer : string;
   children : node list;
-  solved : bool;
+  mutable solved : bool;
 }
 
 (* a full puzzle loaded from JSON *)
