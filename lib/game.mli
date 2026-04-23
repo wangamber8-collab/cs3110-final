@@ -29,15 +29,15 @@ val render_node : Types.node -> string
 val render : state -> string
 
 (** [exposed s] returns every node the player can currently attempt: unsolved
-    nodes whose children are all solved. Initially this is the set of leaves;
-    as the player wins nodes, their parents become exposed. *)
+    nodes whose children are all solved. Initially this is the set of leaves; as
+    the player wins nodes, their parents become exposed. *)
 val exposed : state -> Types.node list
 
 (** [submit input s] tries [input] as an answer. If it matches the answer of
-    some exposed node (after [normalize]), returns the updated state with
-    that node marked solved and [true]; otherwise returns [(s, false)]. *)
-val submit : string -> state -> state * bool
+    some exposed node (after [normalize]), the state is modified where the node
+    is marked solved, returning [true]; otherwise returns [false]. *)
+val submit : string -> state -> bool
 
-(** [is_won s] is [true] once the root node has been solved — equivalently,
-    once every node in the tree has been solved. *)
+(** [is_won s] is [true] once the root node has been solved — equivalently, once
+    every node in the tree has been solved. *)
 val is_won : state -> bool
