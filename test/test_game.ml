@@ -6,8 +6,11 @@ open Cs3110_final.Game
 (** list of puzzles from the json file*)
 let puzzles = load_puzzles "../data/ver2_NESTED_puzzles.json"
 
-(** the first puzzle in the list of loaded puzzles*)
-let puzzle = choose_puzzle "hard" puzzles |> Option.get
+(** the first puzzle in the loaded puzzles*)
+let puzzle = List.hd puzzles
+
+(** a random hard puzzle in the list of loaded puzzles*)
+let puzzle_hard = choose_puzzle "hard" puzzles |> Option.get
 
 (* Pretty-print a label_part list so assert_equal failures are readable. *)
 let string_of_part = function
@@ -100,9 +103,9 @@ let tests =
          ( "render strips the outermost brackets from render_node s.root when \
             the root is unsolved"
          >:: fun _ ->
-           let full = render_node puzzle.root in
+           let full = render_node puzzle_hard.root in
            let body = String.sub full 1 (String.length full - 2) in
-           assert_equal body (render puzzle) ~printer:(fun s -> s) );
+           assert_equal body (render puzzle_hard) ~printer:(fun s -> s) );
          ( "render returns the root's answer verbatim when the root is solved"
          >:: fun _ ->
            let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
