@@ -108,6 +108,22 @@ let tests =
            let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
            p.root.solved <- true;
            assert_equal "GM makes its 100 millionth car" (render p) );
+         ( "exposed returns every leaf of a fresh puzzle (nothing solved yet)"
+         >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let answers = List.map (fun n -> n.answer) (exposed p) in
+           assert_equal 6 (List.length answers);
+           assert_bool "Chap should be exposed" (List.mem "Chap" answers);
+           assert_bool "forward should be exposed"
+             (List.mem "forward" answers) );
+         ( "exposed drops a solved leaf but keeps its siblings" >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let _ = submit "Chap" p in
+           let answers = List.map (fun n -> n.answer) (exposed p) in
+           assert_bool "Chap should no longer be exposed"
+             (not (List.mem "Chap" answers));
+           assert_bool "name should still be exposed"
+             (List.mem "name" answers) );
        ]
 
 let _ = run_test_tt_main tests

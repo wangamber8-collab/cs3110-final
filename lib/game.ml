@@ -84,7 +84,13 @@ let render (s : state) : string =
    -> include n (stop recursing here; the subtree below is fully solved). - else
    recurse into n's unsolved children to find deeper exposed nodes. 3. Return
    the collected list. *)
-let exposed (_s : state) : node list = failwith "TODO"
+let exposed (s : state) : node list =
+  let rec find n =
+    if n.solved then []
+    else if List.for_all (fun c -> c.solved) n.children then [ n ]
+    else List.concat_map find n.children
+  in
+  find s.root
 
 (* PURPOSE: accept a user answer; if it matches an exposed node's answer, return
    a modified state (switch the mutable flag solved) with that node flipped to
