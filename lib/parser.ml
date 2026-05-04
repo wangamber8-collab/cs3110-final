@@ -16,6 +16,7 @@ let parse_puzzle json =
     difficulty = json |> member "difficulty" |> to_string;
     theme = json |> member "theme" |> to_string;
     title = json |> member "title" |> to_string;
+    solved_puzzle = false;
     root = json |> member "root" |> parse_node;
   }
 
@@ -26,7 +27,11 @@ let load_puzzles filepath =
   difficulty doesn't exist*)
 let choose_puzzle difficulty puzzles =
   Random.self_init ();
-  let filtered = List.filter (fun p -> difficulty = p.difficulty) puzzles in
+  let filtered =
+    List.filter
+      (fun p -> difficulty = p.difficulty && p.solved_puzzle = false)
+      puzzles
+  in
   match filtered with
   | [] -> None
   | _ ->

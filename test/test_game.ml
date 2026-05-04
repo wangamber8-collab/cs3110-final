@@ -12,10 +12,14 @@ let puzzle = List.hd puzzles
 (** a random hard puzzle in the list of loaded puzzles*)
 let puzzle_hard = choose_puzzle "hard" puzzles |> Option.get
 
-(* Pretty-print a label_part list so assert_equal failures are readable. *)
+(** Pretty-print a label_part list so assert_equal failures are readable. *)
 let string_of_part = function
   | Text s -> Printf.sprintf "Text %S" s
   | Slot i -> Printf.sprintf "Slot %d" i
+
+(** A dummy child node for testing purposes. Represents a simple bracket node in
+    a puzzle. *)
+let dummy_node = { label = ""; answer = ""; children = []; solved = false }
 
 let string_of_parts parts =
   "[" ^ String.concat "; " (List.map string_of_part parts) ^ "]"
@@ -117,16 +121,110 @@ let tests =
            let answers = List.map (fun n -> n.answer) (exposed p) in
            assert_equal 6 (List.length answers);
            assert_bool "Chap should be exposed" (List.mem "Chap" answers);
-           assert_bool "forward should be exposed"
-             (List.mem "forward" answers) );
+           assert_bool "forward should be exposed" (List.mem "forward" answers)
+         );
          ( "exposed drops a solved leaf but keeps its siblings" >:: fun _ ->
            let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
            let _ = submit "Chap" p in
            let answers = List.map (fun n -> n.answer) (exposed p) in
            assert_bool "Chap should no longer be exposed"
              (not (List.mem "Chap" answers));
-           assert_bool "name should still be exposed"
-             (List.mem "name" answers) );
+           assert_bool "name should still be exposed" (List.mem "name" answers)
+         );
+         ( "choose_puzzle only returns unsolved puzzles" >:: fun _ ->
+           let p1 =
+             {
+               id = 1;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = true;
+               root = dummy_node;
+             }
+           in
+           let p2 =
+             {
+               id = 2;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = dummy_node;
+             }
+           in
+
+           let puzzles = [ p1; p2 ] in
+           assert_equal (Some p2) (choose_puzzle "easy" puzzles);
+           let puzzles =
+             [
+               {
+                 id = 1;
+                 difficulty = "easy";
+                 theme = "";
+                 title = "";
+                 solved_puzzle = true;
+                 root = dummy_node;
+               };
+               {
+                 id = 2;
+                 difficulty = "easy";
+                 theme = "";
+                 title = "";
+                 solved_puzzle = false;
+                 root = dummy_node;
+               };
+               {
+                 id = 3;
+                 difficulty = "easy";
+                 theme = "";
+                 title = "";
+                 solved_puzzle = false;
+                 root = dummy_node;
+               };
+             ]
+           in
+           let puzzle = choose_puzzle "easy" puzzles in
+           let is_correct =
+             match puzzle with
+             | Some p -> p.id = 2 || p.id = 3
+             | None -> false
+           in
+           assert_equal true is_correct );
+         ( " choose_puzzle only returns unsolved puzzles of the right difficulty"
+         >:: fun _ ->
+           let p1 =
+             {
+               id = 1;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = dummy_node;
+             }
+           in
+           let p2 =
+             {
+               id = 2;
+               difficulty = "medium";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = dummy_node;
+             }
+           in
+           let p3 =
+             {
+               id = 3;
+               difficulty = "hard";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = dummy_node;
+             }
+           in
+
+           let puzzles = [ p1; p2; p3 ] in
+           assert_equal (Some p1) (choose_puzzle "easy" puzzles) );
        ]
 
 let _ = run_test_tt_main tests

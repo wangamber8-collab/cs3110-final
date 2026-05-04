@@ -118,4 +118,7 @@ let submit (user_input : string) (game_s : state) : bool =
 
 (* checks if the player has won the game by checking if the root node is
    solved*)
-let is_won (_s : state) : bool = if _s.root.solved = true then true else false
+let is_won (_s : state) : bool =
+  let result = _s.root.solved in
+  if result then _s.solved_puzzle <- true else ();
+  result
