@@ -19,7 +19,8 @@ type node = {
 (* Abstraction function: A puzzle {id; difficulty; theme; title; root}
    represents a full puzzle. [id] is a unique identifier. [difficulty] is one of
    "easy", "medium", or "hard". [theme] is a short description of the puzzle's
-   topic. [title] is the display name. [root] is the top-level bracket node from
+   topic. [title] is the display name. [solved] is true if the user has finished
+   the puzzle and false otherwise. [root] is the top-level bracket node from
    which all sub-brackets descend.
 
    Representation Invariant: [id] must be a positive integer. [difficulty] must
@@ -30,6 +31,7 @@ type puzzle = {
   difficulty : string;
   theme : string;
   title : string;
+  mutable solved_puzzle : bool;
   root : node;
 }
 
