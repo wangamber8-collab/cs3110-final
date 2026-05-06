@@ -25,3 +25,24 @@ guess.addEventListener("keypress", (e) => {
         guess.value = "";
     }
 });
+
+function showVictory({ puzzleName, timeTaken, accuracy, streak }) {
+  document.getElementById('vc-puzzle-name').textContent = puzzleName;
+
+  const overlay = document.getElementById('victory-overlay');
+  overlay.style.display = 'flex';
+
+  const card = document.getElementById('victory-card');
+  card.style.animation = 'none';
+  card.offsetHeight; // force reflow
+  card.style.animation = '';
+}
+
+function closeVictory() {
+  document.getElementById('victory-overlay').style.display = 'none';
+}
+
+function loadNextPuzzle() {
+  closeVictory();
+  // next puzzle logic here
+}

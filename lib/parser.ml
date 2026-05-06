@@ -16,8 +16,24 @@ let parse_puzzle json =
     difficulty = json |> member "difficulty" |> to_string;
     theme = json |> member "theme" |> to_string;
     title = json |> member "title" |> to_string;
+    solved_puzzle = false;
     root = json |> member "root" |> parse_node;
   }
 
 let load_puzzles filepath =
   Yojson.Basic.from_file filepath |> to_list |> List.map parse_puzzle
+
+(*returns puzzle Option with random puzzle of given difficulty and None if
+  difficulty doesn't exist*)
+let choose_puzzle difficulty puzzles =
+  Random.self_init ();
+  let filtered =
+    List.filter
+      (fun p -> difficulty = p.difficulty && p.solved_puzzle = false)
+      puzzles
+  in
+  match filtered with
+  | [] -> None
+  | _ ->
+      let index = Random.int (List.length filtered) in
+      Some (List.nth filtered index)
