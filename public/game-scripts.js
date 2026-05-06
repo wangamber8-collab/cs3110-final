@@ -12,6 +12,23 @@ ws.onmessage = (event) => {
     if (msg.startsWith("BRACKET|")) {
         bracket1.textContent = "[" + msg.slice("BRACKET|".length) + "]";
     }
+
+    const msg = event.data;
+    console.log(msg);
+
+    if (msg.startsWith("BRACKET|")) {
+        bracket1.textContent = "[" + msg.slice("BRACKET|".length) + "]";
+        showFeedback("correct");
+    }
+
+    if (msg.startsWith("INCORRECT|")) {
+        showFeedback("incorrect");
+    }
+
+    if (msg.startsWith("WIN|")) {
+        console.log("WIN message received:", msg);
+        showVictory({ puzzleName: "Bracket City" });
+    }
 };
 
 submit.onclick = () => {
@@ -45,4 +62,32 @@ function closeVictory() {
 function loadNextPuzzle() {
   closeVictory();
   // next puzzle logic here
+}
+
+
+function showFeedback(type) {
+    const input = document.getElementById("guess");
+    const submitBtn = document.getElementById("submit");
+    const msg = document.getElementById("feedback-msg");
+
+    input.classList.remove("feedback-correct", "feedback-incorrect");
+    submitBtn.classList.remove("feedback-correct", "feedback-incorrect");
+    void input.offsetWidth;
+
+    if (type === "correct") {
+        msg.textContent = "✓ correct!";
+        msg.style.color = "#639922";
+    } else {
+        msg.textContent = "✗ incorrect, try again";
+        msg.style.color = "#E24B4A";
+    }
+
+    input.classList.add(`feedback-${type}`);
+    submitBtn.classList.add(`feedback-${type}`);
+
+    setTimeout(() => {
+        input.classList.remove("feedback-correct", "feedback-incorrect");
+        submitBtn.classList.remove("feedback-correct", "feedback-incorrect");
+        msg.textContent = "";
+    }, 1500);
 }
