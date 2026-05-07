@@ -47,6 +47,11 @@ function showVictory({ puzzleName }) {
     card.style.animation = 'none';
     card.offsetHeight;
     card.style.animation = '';
+    if (msg.startsWith("WIN|")) {
+    console.log("WIN message received:", msg);  // do you see this?
+    showVictory({ puzzleName: "Bracket City" });
+    
+}
 }
 
 function closeVictory() {

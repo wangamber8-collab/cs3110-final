@@ -16,35 +16,34 @@
         * {
             font-family: "Fira Code", monospace;
         }
+        @keyframes pop-in {
+        0%   { transform: scale(0.85); opacity: 0; }
+        100% { transform: scale(1);    opacity: 1; }
+        }
     </style>
 </head>
 
-<div id="victory-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:999; align-items:center; justify-content:center;">
-  <div id="victory-card" style="background:#fff; border-radius:12px; padding:2rem 2.5rem; text-align:center; width:320px; animation:pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;">
-    <div style="width:64px;height:64px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:28px;">🏆</div>
-    <p id="vc-puzzle-name" style="font-size:13px;color:#888;margin:0 0 4px;"></p>
-    <h2 style="font-size:22px;font-weight:500;margin:0 0 4px;">Victory!</h2>
-    <p style="font-size:14px;color:#888;margin:0;">All brackets filled correctly.</p>
-    <div style="display:flex;justify-content:center;gap:2rem;margin:1.25rem 0 1.5rem;">
-    </div>
-    <button onclick="loadNextPuzzle()" style="width:100%;padding:10px;background:#639922;color:#27500A;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:8px;">Next puzzle</button>
-    <button onclick="closeVictory()" style="width:100%;padding:10px;background:transparent;color:#888;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;">Home</button>
-  </div>
+
 </div>
 
-<style>
-@keyframes pop-in {
-  0%   { transform: scale(0.85); opacity: 0; }
-  100% { transform: scale(1);    opacity: 1; }
-}
-</style>
 
 <body>
-    <pre id="out"></pre>
+    
     <!-- 
     <input type="text" id="guess" placeholder="Type your guess here">
     <button id="submit">Submit</button> -->
+    <div id="victory-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:999; align-items:center; justify-content:center;">
+        <div id="victory-card" style="background:#fff; border-radius:12px; padding:2rem 2.5rem; text-align:center; width:320px; animation:pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;">
+            <div style="width:64px;height:64px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:28px;">🏆</div>
+            <p id="vc-puzzle-name" style="font-size:13px;color:#888;margin:0 0 4px;"></p>
+            <h2 style="font-size:22px;font-weight:500;margin:0 0 4px;">Victory!</h2>
+            <p style="font-size:14px;color:#888;margin:0;">All brackets filled correctly.</p>
+            <button onclick="loadNextPuzzle()" style="width:100%;padding:10px;background:#639922;color:#27500A;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:8px;">Next puzzle</button>
+            <button onclick="closeVictory()" style="width:100%;padding:10px;background:transparent;color:#888;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;">Home</button>
+        </div>
+    </div>
 
+  <pre id="out"></pre>
     <main class="page">
         <header class="top-card">
             <section class="center-info">
@@ -54,10 +53,10 @@
             </section>
               
         </header>
-<nav>
-                    <a href="index.html" >Home</a>
-                    <a href="# " class="active">Play</a>
-                </nav>
+        <nav>
+            <a href="index.html" >Home</a>
+            <a href="# " class="active">Play</a>
+        </nav>
         <section class="game-card">
             <article class="puzzle-box">
                 <p class="puzzle-text">
