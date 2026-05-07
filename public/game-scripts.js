@@ -17,11 +17,11 @@ ws.onmessage = (event) => {
         showFeedback("correct");
     }
 
-    if (msg.startsWith("INCORRECT|")) {
+    else if (msg.startsWith("INCORRECT|")) {
         showFeedback("incorrect");
     }
 
-    if (msg.startsWith("WIN|")) {
+    else if (msg.startsWith("WIN|")) {
         console.log("WIN message received:", msg);
         showVictory({ puzzleName: "Bracket City" });
     }

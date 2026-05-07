@@ -318,3 +318,21 @@ let () =
          Dream.get "/ws" ws_handler;
          Dream.get "/**" (Dream.static "public");
        ]
+
+
+
+(* debug log*)
+let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
+    (guess : string) : unit Lwt.t =
+  let correct = Game.submit guess !state in
+  if correct then begin
+    let* () = send_bracket ws state in
+    let won = Game.is_won !state in
+    Dream.log "is_won = %b" won;
+    if won then
+      _send_win ws state
+    else
+      _send_exposed ws state
+  end
+  else
+    _send_incorrect ws guess
