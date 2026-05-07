@@ -115,3 +115,27 @@ body {
   background: #343434;
   cursor: pointer;
 }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      border-top: 1px solid #c8b89a;
+      border-bottom: 1px solid #c8b89a;
+
+    }
+
+    nav a {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.80rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #1a1510;
+      text-decoration: none;
+      padding: 0.55rem 1.5rem;
+      border-right: 1px solid #c8b89a;
+      border-left: 1px solid #c8b89a;
+      transition: background 0.15s, color 0.15s;
+    }
+    nav a:hover { background: #1a1510; color: #f5f0e8; }
+    nav a.active { background: #449a3c; color:#f5f0e8; }
