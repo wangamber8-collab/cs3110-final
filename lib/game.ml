@@ -69,10 +69,14 @@ let rec render_node (n : node) : string =
     if List.for_all (fun c -> c.solved) n.children then "[" ^ body ^ "]"
     else body
 
-(* PURPOSE: produce the full puzzle display string shown to the player. STEPS:
-   1. Call render_node on state.root. 2. Strip the outermost "[" and "]" — the
-   root isn't inside anything, so the final string (e.g. "GM makes its 100
-   millionth car") should not be bracketed. *)
+(* PURPOSE: produce the full puzzle display string shown to the player. Calls
+   render_node on the root node and returns the result directly.
+
+   Since render_node now only adds brackets around currently answerable exposed
+   nodes, render should not strip off the outermost characters. If the root is
+   solved, render_node returns the root answer with no brackets. If the root is
+   the current exposed node, render_node may return it bracketed so the frontend
+   can highlight it. *)
 
 (* let render (s : state) : string = if s.root.solved then s.root.answer else
    let full = render_node s.root in String.sub full 1 (String.length full -
