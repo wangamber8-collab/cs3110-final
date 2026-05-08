@@ -6,5 +6,5 @@ Run the following terminal command to install required libraries:
 opam install dream yojson
 
 # Run the program:
-dune exec bin/main.exe
+dune exec bin/main_logic.exe
 
