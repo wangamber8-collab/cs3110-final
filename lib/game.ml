@@ -141,14 +141,14 @@ let rec count_solved (n : node) : int =
 (* PURPOSE: return the player's current progress through the puzzle as
    (solved_count, total_count). STEPS: 1. Count all nodes in the tree via
    count_nodes. 2. Count solved nodes via count_solved. 3. Return the pair. *)
-let progress (s : state) : int * int =
-  (count_solved s.root, count_nodes s.root)
+let progress (s : state) : int * int = (count_solved s.root, count_nodes s.root)
 
-(* PURPOSE: given the inner text of a clicked chip (the body inside [...]),
-   find the matching exposed node and return the first character of its answer.
+(* PURPOSE: given the inner text of a clicked chip (the body inside [...]), find
+   the matching exposed node and return the first character of its answer.
    Returns None if no exposed node matches the body or the answer is empty.
    NOTE: exposed nodes are always wrapped in [...] by render_node, so we strip
-   the outer brackets to get the body for comparison. *)
+   the outer brackets to get the body for comparison. This is for first click
+   behavior*)
 let hint_first_letter (chip_body : string) (s : state) : string option =
   let body_of n =
     let r = render_node n in
@@ -157,6 +157,44 @@ let hint_first_letter (chip_body : string) (s : state) : string option =
   match List.find_opt (fun n -> body_of n = chip_body) (exposed s) with
   | None -> None
   | Some n ->
-    if String.length n.answer > 0
-    then Some (String.make 1 n.answer.[0])
-    else None
+      if String.length n.answer > 0 then Some (String.make 1 n.answer.[0])
+      else None
+
+(* PURPOSE: remove one pair of outer square brackets from a string, if they are
+   present. If [s] starts with "[" and ends with "]", returns the inside of the
+   brackets. Otherwise, returns [s] unchanged.
+
+   EXAMPLES: strip_outer_brackets "[hello]" = "hello"*)
+let strip_outer_brackets (s : string) : string =
+  let len = String.length s in
+  if len >= 2 && s.[0] = '[' && s.[len - 1] = ']' then String.sub s 1 (len - 2)
+  else s
+
+(* PURPOSE: compute the clickable/display body of an exposed node. Since
+   render_node wraps exposed nodes in square brackets, this first renders the
+   node and then removes the outer brackets.
+
+   This lets us compare the text the frontend sends back after a user clicks a
+   bracket chip with the corresponding exposed node in the OCaml game state. *)
+let body_of_exposed_node (n : node) : string =
+  render_node n |> strip_outer_brackets
+
+(* PURPOSE: reveal a currently answerable bracket based on the text inside the
+   clicked chip.
+
+   [chip_body] is the text inside the clicked bracket, without the outer square
+   brackets. The function searches through the currently exposed nodes for a
+   node whose rendered body matches [chip_body]. If it finds one, it marks that
+   node as solved and returns true. If no exposed node matches, it returns
+   false.
+
+   This is used for the second-click hint behavior: first click gives the first
+   letter, second click reveals/solves the bracket. *)
+let reveal_by_body (chip_body : string) (s : state) : bool =
+  match
+    List.find_opt (fun n -> body_of_exposed_node n = chip_body) (exposed s)
+  with
+  | None -> false
+  | Some n ->
+      n.solved <- true;
+      true
