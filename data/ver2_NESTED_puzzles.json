@@ -5,7 +5,7 @@
     "theme": "corporate milestones",
     "title": "GM's 100 Millionth Car",
     "root": {
-      "label": "{0}{1} makes its 100 millionth car",
+      "label": "{0}{1} bmakes its 100 millionth car",
       "answer": "GM makes its 100 millionth car",
       "children": [
         {

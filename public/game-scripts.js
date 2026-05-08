@@ -17,7 +17,7 @@ ws.onmessage = (event) => {
 
         bracket1.innerHTML = text.replace(
         /\[([^\[\]]+)\]/g,
-        '<span class="chip">[$1]</span>'
+        '<span class="chip" data-hint="$1">[$1]</span>'
         );
         
         showFeedback("correct");
@@ -31,6 +31,11 @@ ws.onmessage = (event) => {
         document.getElementById("progress-bar").style.width = pct + "%";
         document.getElementById("progress-label").textContent =
             `${solved} of ${total} solved`;
+    }
+
+    else if (msg.startsWith("HINT|")) {
+        const letter = msg.slice("HINT|".length);
+        showHint(letter);
     }
 
     else if (msg.startsWith("INCORRECT|")) {
@@ -79,6 +84,22 @@ function closeVictory() {
 
 function loadNextPuzzle() {
     window.location.reload();
+}
+
+bracket1.addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (chip) {
+        ws.send("HINT|" + chip.dataset.hint);
+    }
+});
+
+function showHint(letter) {
+    const msg = document.getElementById("feedback-msg");
+    msg.textContent = `hint: starts with "${letter}"`;
+    msg.style.color = "#8096e7";
+    setTimeout(() => {
+        msg.textContent = "";
+    }, 3000);
 }
 
 function showFeedback(type) {

@@ -235,6 +235,12 @@ let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
    Then replace [ignore req] and [default_difficulty] here with: let diff =
    Dream.query req "difficulty" |> Option.value ~default:"hard" in
    ----------------------------------------------------------------------------- *)
+let handle_hint (ws : Dream.websocket) (state : Types.puzzle ref)
+    (chip_body : string) : unit Lwt.t =
+  match Game.hint_first_letter chip_body !state with
+  | None -> Lwt.return_unit
+  | Some letter -> send_to ws ("HINT|" ^ letter)
+
 let ws_handler (req : Dream.request) : Dream.response Lwt.t =
   (* STUB: [req] is ignored until difficulty comes from the browser. Replace
      [ignore req] with query-param extraction when ready. *)
@@ -275,8 +281,15 @@ let ws_handler (req : Dream.request) : Dream.response Lwt.t =
                 | None ->
                     (* None = client closed the tab or lost connection. *)
                     Lwt.return_unit
-                | Some guess ->
-                    let* () = handle_guess ws state guess in
+                | Some raw ->
+                    let* () =
+                      if String.length raw >= 5
+                         && String.sub raw 0 5 = "HINT|"
+                      then
+                        handle_hint ws state
+                          (String.sub raw 5 (String.length raw - 5))
+                      else handle_guess ws state raw
+                    in
                     keep_open ()
               in
               keep_open ())

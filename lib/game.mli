@@ -56,3 +56,11 @@ val count_solved : Types.node -> int
     nodes the player has correctly answered and [total] is the total node count.
     Use this to drive a progress bar or "X of Y" display. *)
 val progress : state -> int * int
+
+(** [hint_first_letter chip_body s] finds the exposed node whose rendered body
+    matches [chip_body] and returns [Some c] where [c] is the first character
+    of that node's answer. Returns [None] if no exposed node matches or the
+    answer is empty. [chip_body] is the text inside the clicked bracket chip,
+    i.e. the rendered label with child answers substituted but without the
+    outer ["[" ... "]"]. *)
+val hint_first_letter : string -> state -> string option

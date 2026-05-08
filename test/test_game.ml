@@ -104,6 +104,14 @@ let tests =
          ( "testing normalize function" >:: fun _ ->
            let word = "    good   " in
            assert_equal "GOOD" (normalize word) );
+         ( "normalize preserves internal whitespace" >:: fun _ ->
+           assert_equal "APOLLO 11" (normalize "Apollo 11") );
+         ( "normalize returns empty string unchanged" >:: fun _ ->
+           assert_equal "" (normalize "") );
+         ( "normalize preserves numbers and non-alpha characters" >:: fun _ ->
+           assert_equal "ABC123" (normalize "abc123") );
+         ( "normalize is idempotent on already-uppercase input" >:: fun _ ->
+           assert_equal "HELLO" (normalize "HELLO") );
          ( "render strips the outermost brackets from render_node s.root when \
             the root is unsolved"
          >:: fun _ ->
@@ -115,6 +123,63 @@ let tests =
            let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
            p.root.solved <- true;
            assert_equal "GM makes its 100 millionth car" (render p) );
+         ( "render_node returns bare answer for a solved node (no brackets)"
+         >:: fun _ ->
+           let n =
+             { label = "some clue"; answer = "London"; children = []; solved = true }
+           in
+           assert_equal "London" (render_node n) );
+         ( "render_node wraps an unsolved leaf in brackets" >:: fun _ ->
+           let n =
+             {
+               label = "some clue";
+               answer = "London";
+               children = [];
+               solved = false;
+             }
+           in
+           assert_equal "[some clue]" (render_node n) );
+         ( "render_node returns body without outer brackets when a child is \
+            unsolved"
+         >:: fun _ ->
+           let child =
+             {
+               label = "child clue";
+               answer = "Paris";
+               children = [];
+               solved = false;
+             }
+           in
+           let parent =
+             {
+               label = "city: {0}";
+               answer = "city: Paris";
+               children = [ child ];
+               solved = false;
+             }
+           in
+           (* child is unsolved so parent is not yet answerable — no outer
+              brackets. child itself is a leaf so it gets inner brackets. *)
+           assert_equal "city: [child clue]" (render_node parent) );
+         ( "render_node wraps parent in brackets once all children are solved"
+         >:: fun _ ->
+           let child =
+             {
+               label = "child clue";
+               answer = "Paris";
+               children = [];
+               solved = true;
+             }
+           in
+           let parent =
+             {
+               label = "city: {0}";
+               answer = "city: Paris";
+               children = [ child ];
+               solved = false;
+             }
+           in
+           assert_equal "[city: Paris]" (render_node parent) );
          ( "exposed returns every leaf of a fresh puzzle (nothing solved yet)"
          >:: fun _ ->
            let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
@@ -131,6 +196,106 @@ let tests =
              (not (List.mem "Chap" answers));
            assert_bool "name should still be exposed" (List.mem "name" answers)
          );
+         (* submit direct tests *)
+         ( "submit returns true on a correct answer" >:: fun _ ->
+           let leaf =
+             { label = "clue"; answer = "Paris"; children = []; solved = false }
+           in
+           let p =
+             {
+               id = 0;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = leaf;
+             }
+           in
+           assert_equal true (submit "Paris" p) );
+         ( "submit returns false on a wrong answer" >:: fun _ ->
+           let leaf =
+             { label = "clue"; answer = "Paris"; children = []; solved = false }
+           in
+           let p =
+             {
+               id = 0;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = leaf;
+             }
+           in
+           assert_equal false (submit "London" p) );
+         ( "submit is case-insensitive" >:: fun _ ->
+           let leaf =
+             { label = "clue"; answer = "Paris"; children = []; solved = false }
+           in
+           let p =
+             {
+               id = 0;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = leaf;
+             }
+           in
+           assert_equal true (submit "paris" p) );
+         ( "submit trims leading and trailing whitespace" >:: fun _ ->
+           let leaf =
+             { label = "clue"; answer = "Paris"; children = []; solved = false }
+           in
+           let p =
+             {
+               id = 0;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = leaf;
+             }
+           in
+           assert_equal true (submit "  Paris  " p) );
+         ( "submit returns false when the node is already solved" >:: fun _ ->
+           let leaf =
+             { label = "clue"; answer = "Paris"; children = []; solved = false }
+           in
+           let p =
+             {
+               id = 0;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = leaf;
+             }
+           in
+           ignore (submit "Paris" p);
+           (* node is now solved and no longer exposed *)
+           assert_equal false (submit "Paris" p) );
+         ( "exposed is empty after all nodes are solved" >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let rec solve_all () =
+             if not (is_won p) then begin
+               List.iter (fun n -> ignore (submit n.answer p)) (exposed p);
+               solve_all ()
+             end
+           in
+           solve_all ();
+           assert_equal [] (exposed p) );
+         ( "exposed drops a solved leaf but keeps its siblings \
+            (data-independent)"
+         >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let before = exposed p in
+           let target = List.hd before in
+           let _ = submit target.answer p in
+           let after = exposed p in
+           assert_bool "solved node should not be in exposed list"
+             (not (List.exists (fun n -> n.answer = target.answer) after));
+           assert_bool "at least one sibling should remain exposed"
+             (List.length after > 0) );
          ( "choose_puzzle only returns unsolved puzzles" >:: fun _ ->
            let p1 =
              {
@@ -225,6 +390,57 @@ let tests =
 
            let puzzles = [ p1; p2; p3 ] in
            assert_equal (Some p1) (choose_puzzle "easy" puzzles) );
+         ( "choose_puzzle returns None on an empty puzzle list" >:: fun _ ->
+           assert_equal None (choose_puzzle "easy" []) );
+         (* is_won tests *)
+         ( "is_won returns false on a fresh puzzle" >:: fun _ ->
+           let leaf =
+             { label = "clue"; answer = "Paris"; children = []; solved = false }
+           in
+           let p =
+             {
+               id = 0;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = leaf;
+             }
+           in
+           assert_equal false (is_won p) );
+         ( "is_won returns true after the root is solved" >:: fun _ ->
+           let leaf =
+             { label = "clue"; answer = "Paris"; children = []; solved = false }
+           in
+           let p =
+             {
+               id = 0;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = leaf;
+             }
+           in
+           ignore (submit "Paris" p);
+           assert_equal true (is_won p) );
+         ( "is_won sets solved_puzzle flag on the puzzle record" >:: fun _ ->
+           let leaf =
+             { label = "clue"; answer = "Paris"; children = []; solved = false }
+           in
+           let p =
+             {
+               id = 0;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = leaf;
+             }
+           in
+           ignore (submit "Paris" p);
+           ignore (is_won p);
+           assert_equal true p.solved_puzzle );
          (* count_nodes tests *)
          ( "count_nodes returns 1 for a single leaf node" >:: fun _ ->
            assert_equal 1 (count_nodes dummy_node) );
@@ -240,6 +456,30 @@ let tests =
              }
            in
            assert_equal 3 (count_nodes parent) );
+         ( "count_nodes returns 4 for a three-level deep tree" >:: fun _ ->
+           let gc1 =
+             { label = ""; answer = "A"; children = []; solved = false }
+           in
+           let gc2 =
+             { label = ""; answer = "B"; children = []; solved = false }
+           in
+           let child =
+             {
+               label = "{0} {1}";
+               answer = "A B";
+               children = [ gc1; gc2 ];
+               solved = false;
+             }
+           in
+           let root =
+             {
+               label = "{0}";
+               answer = "A B";
+               children = [ child ];
+               solved = false;
+             }
+           in
+           assert_equal 4 (count_nodes root) );
          ( "count_nodes on the first loaded puzzle exceeds its leaf count"
          >:: fun _ ->
            let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
@@ -252,6 +492,12 @@ let tests =
          ( "count_solved increments by 1 after solving one leaf" >:: fun _ ->
            let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
            let _ = submit "Chap" p in
+           assert_equal 1 (count_solved p.root) );
+         ( "count_solved increments by 1 after solving any leaf (data-independent)"
+         >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let leaf = List.hd (exposed p) in
+           let _ = submit leaf.answer p in
            assert_equal 1 (count_solved p.root) );
          ( "count_solved counts every solved node including parent nodes"
          >:: fun _ ->
@@ -279,6 +525,14 @@ let tests =
            let _ = submit "Chap" p in
            let solved, _ = progress p in
            assert_equal 1 solved );
+         ( "progress solved count increments after a correct submission \
+            (data-independent)"
+         >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let leaf = List.hd (exposed p) in
+           let _ = submit leaf.answer p in
+           let solved, _ = progress p in
+           assert_equal 1 solved );
          ( "progress returns (total, total) after winning the puzzle" >:: fun _ ->
            let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
            let rec solve_all () =
@@ -290,6 +544,109 @@ let tests =
            solve_all ();
            let solved, total = progress p in
            assert_equal total solved );
+         (* hint_first_letter tests *)
+         ( "hint_first_letter returns Some with correct first letter for a leaf \
+            chip"
+         >:: fun _ ->
+           let leaf =
+             {
+               label = "a clue";
+               answer = "Apple";
+               children = [];
+               solved = false;
+             }
+           in
+           let p =
+             {
+               id = 99;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root =
+                 {
+                   label = "{0}";
+                   answer = "Apple";
+                   children = [ leaf ];
+                   solved = false;
+                 };
+             }
+           in
+           assert_equal (Some "A") (hint_first_letter "a clue" p) );
+         ( "hint_first_letter returns None for a body that matches no exposed \
+            node"
+         >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           assert_equal None (hint_first_letter "this matches nothing" p) );
+         ( "hint_first_letter returns None for a solved node (no longer exposed)"
+         >:: fun _ ->
+           let leaf =
+             {
+               label = "a clue";
+               answer = "Apple";
+               children = [];
+               solved = true;
+             }
+           in
+           let p =
+             {
+               id = 99;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root =
+                 {
+                   label = "{0}";
+                   answer = "Apple";
+                   children = [ leaf ];
+                   solved = false;
+                 };
+             }
+           in
+           (* leaf is already solved so it is not exposed *)
+           assert_equal None (hint_first_letter "a clue" p) );
+         ( "hint_first_letter works on a real loaded puzzle's exposed node"
+         >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let first_exposed = List.hd (exposed p) in
+           let rendered = render_node first_exposed in
+           let body =
+             String.sub rendered 1 (String.length rendered - 2)
+           in
+           let expected = Some (String.make 1 first_exposed.answer.[0]) in
+           assert_equal expected (hint_first_letter body p) );
+         ( "hint_first_letter returns the parent's first letter once its \
+            children are solved"
+         >:: fun _ ->
+           let leaf1 =
+             { label = "clue1"; answer = "Alpha"; children = []; solved = false }
+           in
+           let leaf2 =
+             { label = "clue2"; answer = "Beta"; children = []; solved = false }
+           in
+           let parent =
+             {
+               label = "{0} and {1}";
+               answer = "Gamma";
+               children = [ leaf1; leaf2 ];
+               solved = false;
+             }
+           in
+           let p =
+             {
+               id = 99;
+               difficulty = "easy";
+               theme = "";
+               title = "";
+               solved_puzzle = false;
+               root = parent;
+             }
+           in
+           leaf1.solved <- true;
+           leaf2.solved <- true;
+           (* parent is now exposed; its body = "Alpha and Beta" *)
+           assert_equal (Some "G") (hint_first_letter "Alpha and Beta" p) );
        ]
 
 let _ = run_test_tt_main tests

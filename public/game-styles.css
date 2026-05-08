@@ -83,6 +83,11 @@ body {
   padding: 0.1em 0.45em;
   border-radius: 0.4vw;
   font-weight: 700;
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: #6a7fd4;
 }
 
 .input-row {

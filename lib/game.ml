@@ -143,3 +143,20 @@ let rec count_solved (n : node) : int =
    count_nodes. 2. Count solved nodes via count_solved. 3. Return the pair. *)
 let progress (s : state) : int * int =
   (count_solved s.root, count_nodes s.root)
+
+(* PURPOSE: given the inner text of a clicked chip (the body inside [...]),
+   find the matching exposed node and return the first character of its answer.
+   Returns None if no exposed node matches the body or the answer is empty.
+   NOTE: exposed nodes are always wrapped in [...] by render_node, so we strip
+   the outer brackets to get the body for comparison. *)
+let hint_first_letter (chip_body : string) (s : state) : string option =
+  let body_of n =
+    let r = render_node n in
+    String.sub r 1 (String.length r - 2)
+  in
+  match List.find_opt (fun n -> body_of n = chip_body) (exposed s) with
+  | None -> None
+  | Some n ->
+    if String.length n.answer > 0
+    then Some (String.make 1 n.answer.[0])
+    else None
