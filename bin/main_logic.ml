@@ -160,10 +160,7 @@ let _send_exposed (ws : Dream.websocket) (state : Types.puzzle ref) :
    ----------------------------------------------------------------------------- *)
 let _send_incorrect (ws : Dream.websocket) (guess : string) : unit Lwt.t =
   (* STUB: uncomment the line below once the frontend handles "INCORRECT|" *)
-  (* send_to ws ("INCORRECT|" ^ guess) *)
-  ignore guess;
-  ignore ws;
-  Lwt.return_unit
+  send_to ws ("INCORRECT|" ^ guess) 
 
 (* -----------------------------------------------------------------------------
    STUB: _send_win — Tell the client they have solved the whole puzzle.
@@ -182,11 +179,7 @@ let _send_incorrect (ws : Dream.websocket) (guess : string) : unit Lwt.t =
    3. Uncomment the [_send_win] call inside [handle_guess].
    ----------------------------------------------------------------------------- *)
 let _send_win (ws : Dream.websocket) (state : Types.puzzle ref) : unit Lwt.t =
-  (* STUB: uncomment the line below once the frontend handles "WIN|" *)
-  (* send_to ws ("WIN|" ^ !state.root.answer) *)
-  ignore state;
-  ignore ws;
-  Lwt.return_unit
+  send_to ws ("WIN|" ^ !state.root.answer) 
 
 (* -----------------------------------------------------------------------------
    handle_guess: Process one guess from the player.
@@ -219,19 +212,11 @@ let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
     (* Tree was mutated in place; re-rendering now shows the updated state. *)
     let* () = send_bracket ws state in
     if Game.is_won !state then
-      (* Puzzle complete — send WIN then let keep_open continue to idle.
-         STUB: replace with [_send_win ws state] once frontend handles "WIN|" *)
       _send_win ws state
     else
-      (* More nodes remain — send the new exposed frontier.
-         STUB: replace with [_send_exposed ws state] once frontend handles
-         "EXPOSED|" *)
       _send_exposed ws state
   end
   else
-    (* Wrong guess — bracket unchanged, notify the client.
-       STUB: replace with [_send_incorrect ws guess] once frontend handles
-       "INCORRECT|" *)
     _send_incorrect ws guess
 
 (* -----------------------------------------------------------------------------
@@ -333,3 +318,21 @@ let () =
          Dream.get "/ws" ws_handler;
          Dream.get "/**" (Dream.static "public");
        ]
+
+
+
+(* debug log*)
+let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
+    (guess : string) : unit Lwt.t =
+  let correct = Game.submit guess !state in
+  if correct then begin
+    let* () = send_bracket ws state in
+    let won = Game.is_won !state in
+    Dream.log "is_won = %b" won;
+    if won then
+      _send_win ws state
+    else
+      _send_exposed ws state
+  end
+  else
+    _send_incorrect ws guess

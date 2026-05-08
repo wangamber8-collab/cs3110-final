@@ -2,8 +2,11 @@ const o = document.getElementById("out");
 const ws = new WebSocket(`ws://${location.host}/ws`);
 const guess = document.getElementById("guess");
 const submit = document.getElementById("submit");
-
 const bracket1 = document.getElementById("bracket1");
+
+ws.onopen = () => console.log("WebSocket connected");
+ws.onerror = (e) => console.error("WebSocket error:", e);
+ws.onclose = (e) => console.log("WebSocket closed:", e.code, e.reason);
 
 ws.onmessage = (event) => {
     const msg = event.data;
@@ -11,6 +14,16 @@ ws.onmessage = (event) => {
 
     if (msg.startsWith("BRACKET|")) {
         bracket1.textContent = "[" + msg.slice("BRACKET|".length) + "]";
+        showFeedback("correct");
+    }
+
+    else if (msg.startsWith("INCORRECT|")) {
+        showFeedback("incorrect");
+    }
+
+    else if (msg.startsWith("WIN|")) {
+        console.log("WIN message received:", msg);
+        showVictory({ puzzleName: "Bracket City" });
     }
 };
 
@@ -25,3 +38,54 @@ guess.addEventListener("keypress", (e) => {
         guess.value = "";
     }
 });
+
+function showVictory({ puzzleName }) {
+    document.getElementById('vc-puzzle-name').textContent = puzzleName;
+    const overlay = document.getElementById('victory-overlay');
+    overlay.style.display = 'flex';
+    const card = document.getElementById('victory-card');
+    card.style.animation = 'none';
+    card.offsetHeight;
+    card.style.animation = '';
+    if (msg.startsWith("WIN|")) {
+    console.log("WIN message received:", msg);  // do you see this?
+    showVictory({ puzzleName: "Bracket City" });
+    
+}
+}
+
+function closeVictory() {
+    document.getElementById('victory-overlay').style.display = 'none';
+}
+
+function loadNextPuzzle() {
+    closeVictory();
+    // next puzzle logic here
+}
+
+function showFeedback(type) {
+    const input = document.getElementById("guess");
+    const submitBtn = document.getElementById("submit");
+    const msg = document.getElementById("feedback-msg");
+
+    input.classList.remove("feedback-correct", "feedback-incorrect");
+    submitBtn.classList.remove("feedback-correct", "feedback-incorrect");
+    void input.offsetWidth;
+
+    if (type === "correct") {
+        msg.textContent = "✓ correct!";
+        msg.style.color = "#639922";
+    } else {
+        msg.textContent = "✗ incorrect, try again";
+        msg.style.color = "#E24B4A";
+    }
+
+    input.classList.add(`feedback-${type}`);
+    submitBtn.classList.add(`feedback-${type}`);
+
+    setTimeout(() => {
+        input.classList.remove("feedback-correct", "feedback-incorrect");
+        submitBtn.classList.remove("feedback-correct", "feedback-incorrect");
+        msg.textContent = "";
+    }, 1500);
+}
