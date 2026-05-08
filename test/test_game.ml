@@ -99,7 +99,7 @@ let tests =
 
                let easy_puzzle = Option.get (choose_puzzle "easy" puzzles) in
                assert_equal "computer science" easy_puzzle.theme;
-               let no_puzzle = choose_puzzle "medium" puzzles in
+               let no_puzzle = choose_puzzle "legendary" puzzles in
                assert_equal None no_puzzle );
          ( "testing normalize function" >:: fun _ ->
            let word = "    good   " in
@@ -112,12 +112,10 @@ let tests =
            assert_equal "ABC123" (normalize "abc123") );
          ( "normalize is idempotent on already-uppercase input" >:: fun _ ->
            assert_equal "HELLO" (normalize "HELLO") );
-         ( "render strips the outermost brackets from render_node s.root when \
-            the root is unsolved"
+         ( "render returns render_node s.root when the root is unsolved"
          >:: fun _ ->
-           let full = render_node puzzle_hard.root in
-           let body = String.sub full 1 (String.length full - 2) in
-           assert_equal body (render puzzle_hard) ~printer:(fun s -> s) );
+           assert_equal (render_node puzzle_hard.root) (render puzzle_hard)
+             ~printer:(fun s -> s) );
          ( "render returns the root's answer verbatim when the root is solved"
          >:: fun _ ->
            let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
