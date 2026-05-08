@@ -3,5 +3,5 @@
 # Monisha Bommu - mrb359
 # Anshu Addanki - aa2863
 # Neetu Matthews - nm734
-# We used Claude to generate our JSON data.
+# We used Claude to generate our JSON data. The hard difficulty puzzles come from BracketCity. 
  
