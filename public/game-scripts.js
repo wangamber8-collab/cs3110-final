@@ -78,8 +78,7 @@ function closeVictory() {
 }
 
 function loadNextPuzzle() {
-    closeVictory();
-    // next puzzle logic here
+    window.location.reload();
 }
 
 function showFeedback(type) {
