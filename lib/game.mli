@@ -43,24 +43,35 @@ val submit : string -> state -> bool
 val is_won : state -> bool
 
 (** [count_nodes n] returns the total number of nodes in the subtree rooted at
-    [n], counting both solved and unsolved nodes.
-    NOTE: exposed for testing only — prefer [progress] in application code. *)
+    [n], counting both solved and unsolved nodes. NOTE: exposed for testing only
+    — prefer [progress] in application code. *)
 val count_nodes : Types.node -> int
 
-(** [count_solved n] returns the number of solved nodes in the subtree rooted
-    at [n].
-    NOTE: exposed for testing only — prefer [progress] in application code. *)
+(** [count_solved n] returns the number of solved nodes in the subtree rooted at
+    [n]. NOTE: exposed for testing only — prefer [progress] in application code.
+*)
 val count_solved : Types.node -> int
 
-(** [progress s] returns [(solved, total)] where [solved] is the number of
-    nodes the player has correctly answered and [total] is the total node count.
-    Use this to drive a progress bar or "X of Y" display. *)
+(** [progress s] returns [(solved, total)] where [solved] is the number of nodes
+    the player has correctly answered and [total] is the total node count. Use
+    this to drive a progress bar or "X of Y" display. *)
 val progress : state -> int * int
 
 (** [hint_first_letter chip_body s] finds the exposed node whose rendered body
-    matches [chip_body] and returns [Some c] where [c] is the first character
-    of that node's answer. Returns [None] if no exposed node matches or the
-    answer is empty. [chip_body] is the text inside the clicked bracket chip,
-    i.e. the rendered label with child answers substituted but without the
-    outer ["[" ... "]"]. *)
+    matches [chip_body] and returns [Some c] where [c] is the first character of
+    that node's answer. Returns [None] if no exposed node matches or the answer
+    is empty. [chip_body] is the text inside the clicked bracket chip, i.e. the
+    rendered label with child answers substituted but without the outer
+    ["[" ... "]"]. *)
 val hint_first_letter : string -> state -> string option
+
+(** [reveal_by_body chip_body s] finds the exposed node whose rendered body
+    matches [chip_body] and marks that node as solved. Returns [true] if a
+    matching exposed node was found and revealed, and [false] otherwise.
+    [chip_body] is the text inside the clicked bracket chip, i.e. the rendered
+    label with child answers substituted but without the outer ["[" ... "]"].
+
+    This is used when the player clicks a bracket a second time: the first click
+    gives a hint, and the second click reveals/solves that currently answerable
+    bracket. *)
+val reveal_by_body : string -> state -> bool

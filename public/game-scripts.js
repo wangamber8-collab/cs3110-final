@@ -3,6 +3,7 @@ const ws = new WebSocket(`ws://${location.host}/ws`);
 const guess = document.getElementById("guess");
 const submit = document.getElementById("submit");
 const bracket1 = document.getElementById("bracket1");
+let latestStats = "";
 
 ws.onopen = () => console.log("WebSocket connected");
 ws.onerror = (e) => console.error("WebSocket error:", e);
@@ -13,15 +14,27 @@ ws.onmessage = (event) => {
     console.log(msg);
 
     if (msg.startsWith("BRACKET|")) {
-        const text = msg.slice("BRACKET|".length);
+    const text = msg.slice("BRACKET|".length);
 
-        bracket1.innerHTML = text.replace(
+    bracket1.innerHTML = text.replace(
         /\[([^\[\]]+)\]/g,
-        '<span class="chip" data-hint="$1">[$1]</span>'
-        );
-        
-        showFeedback("correct");
-    }
+        '<span class="chip" data-body="$1">[$1]</span>'
+    );
+
+    document.querySelectorAll(".chip").forEach((chip) => {
+        chip.onclick = () => {
+            const body = chip.dataset.body;
+
+            if (chip.dataset.hinted === "true") {
+                ws.send("REVEAL|" + body);
+            } else {
+                chip.dataset.hinted = "true";
+                window.currentHintChip = chip;
+                ws.send("HINT|" + body);
+            }
+        };
+    });
+}
 
     else if (msg.startsWith("PROGRESS|")) {
         const parts = msg.slice("PROGRESS|".length).split("|");
@@ -34,13 +47,21 @@ ws.onmessage = (event) => {
     }
 
     else if (msg.startsWith("HINT|")) {
-        const letter = msg.slice("HINT|".length);
-        showHint(letter);
+    const letter = msg.slice("HINT|".length);
+
+    if (window.currentHintChip) {
+        window.currentHintChip.innerHTML =
+            window.currentHintChip.innerHTML + " (" + letter + ")";
     }
+}
 
     else if (msg.startsWith("INCORRECT|")) {
         showFeedback("incorrect");
     }
+
+    else if (msg.startsWith("STATS|")) {
+    latestStats = msg.slice("STATS|".length);
+}
 
     else if (msg.startsWith("WIN|")) {
         console.log("WIN message received:", msg);
@@ -65,17 +86,23 @@ guess.addEventListener("keypress", (e) => {
 
 function showVictory({ puzzleName }) {
     document.getElementById('vc-puzzle-name').textContent = puzzleName;
+
+    const stats = document.getElementById("vc-stats");
+    if (stats && latestStats !== "") {
+        const [total, wrong, hints, accuracy] = latestStats.split("|");
+        const correct = Number(total) - Number(wrong);
+
+        stats.textContent =
+            `Guesses: ${total} | Correct: ${correct} | Wrong: ${wrong} | Hints: ${hints} | Accuracy: ${accuracy}%`;
+    }
+
     const overlay = document.getElementById('victory-overlay');
     overlay.style.display = 'flex';
+
     const card = document.getElementById('victory-card');
     card.style.animation = 'none';
     card.offsetHeight;
     card.style.animation = '';
-    if (msg.startsWith("WIN|")) {
-    console.log("WIN message received:", msg);  // do you see this?
-    showVictory({ puzzleName: "Bracket City" });
-    
-}
 }
 
 function closeVictory() {
