@@ -128,3 +128,18 @@ let is_won (_s : state) : bool =
   let result = _s.root.solved in
   if result then _s.solved_puzzle <- true else ();
   result
+
+(* Exposed for testing only — see game.mli *)
+let rec count_nodes (n : node) : int =
+  1 + List.fold_left (fun acc child -> acc + count_nodes child) 0 n.children
+
+(* Exposed for testing only — see game.mli *)
+let rec count_solved (n : node) : int =
+  let self = if n.solved then 1 else 0 in
+  self + List.fold_left (fun acc child -> acc + count_solved child) 0 n.children
+
+(* PURPOSE: return the player's current progress through the puzzle as
+   (solved_count, total_count). STEPS: 1. Count all nodes in the tree via
+   count_nodes. 2. Count solved nodes via count_solved. 3. Return the pair. *)
+let progress (s : state) : int * int =
+  (count_solved s.root, count_nodes s.root)

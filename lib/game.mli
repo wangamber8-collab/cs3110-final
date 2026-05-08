@@ -41,3 +41,18 @@ val submit : string -> state -> bool
 (** [is_won s] is [true] once the root node has been solved — equivalently, once
     every node in the tree has been solved. *)
 val is_won : state -> bool
+
+(** [count_nodes n] returns the total number of nodes in the subtree rooted at
+    [n], counting both solved and unsolved nodes.
+    NOTE: exposed for testing only — prefer [progress] in application code. *)
+val count_nodes : Types.node -> int
+
+(** [count_solved n] returns the number of solved nodes in the subtree rooted
+    at [n].
+    NOTE: exposed for testing only — prefer [progress] in application code. *)
+val count_solved : Types.node -> int
+
+(** [progress s] returns [(solved, total)] where [solved] is the number of
+    nodes the player has correctly answered and [total] is the total node count.
+    Use this to drive a progress bar or "X of Y" display. *)
+val progress : state -> int * int

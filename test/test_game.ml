@@ -225,6 +225,71 @@ let tests =
 
            let puzzles = [ p1; p2; p3 ] in
            assert_equal (Some p1) (choose_puzzle "easy" puzzles) );
+         (* count_nodes tests *)
+         ( "count_nodes returns 1 for a single leaf node" >:: fun _ ->
+           assert_equal 1 (count_nodes dummy_node) );
+         ( "count_nodes returns 3 for a node with two leaf children" >:: fun _ ->
+           let c1 = { label = ""; answer = "A"; children = []; solved = false } in
+           let c2 = { label = ""; answer = "B"; children = []; solved = false } in
+           let parent =
+             {
+               label = "{0} {1}";
+               answer = "A B";
+               children = [ c1; c2 ];
+               solved = false;
+             }
+           in
+           assert_equal 3 (count_nodes parent) );
+         ( "count_nodes on the first loaded puzzle exceeds its leaf count"
+         >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           assert_bool "total nodes should be more than the 6 exposed leaves"
+             (count_nodes p.root > 6) );
+         (* count_solved tests *)
+         ( "count_solved returns 0 on a fresh puzzle" >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           assert_equal 0 (count_solved p.root) );
+         ( "count_solved increments by 1 after solving one leaf" >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let _ = submit "Chap" p in
+           assert_equal 1 (count_solved p.root) );
+         ( "count_solved counts every solved node including parent nodes"
+         >:: fun _ ->
+           let child =
+             { label = ""; answer = "X"; children = []; solved = true }
+           in
+           let parent =
+             {
+               label = "{0}";
+               answer = "X parent";
+               children = [ child ];
+               solved = true;
+             }
+           in
+           assert_equal 2 (count_solved parent) );
+         (* progress tests *)
+         ( "progress returns (0, total) on a fresh puzzle" >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let solved, total = progress p in
+           assert_equal 0 solved;
+           assert_bool "total node count should be positive" (total > 0) );
+         ( "progress solved count increments after a correct submission"
+         >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let _ = submit "Chap" p in
+           let solved, _ = progress p in
+           assert_equal 1 solved );
+         ( "progress returns (total, total) after winning the puzzle" >:: fun _ ->
+           let p = List.hd (load_puzzles "../data/ver2_NESTED_puzzles.json") in
+           let rec solve_all () =
+             if not (is_won p) then begin
+               List.iter (fun n -> ignore (submit n.answer p)) (exposed p);
+               solve_all ()
+             end
+           in
+           solve_all ();
+           let solved, total = progress p in
+           assert_equal total solved );
        ]
 
 let _ = run_test_tt_main tests
