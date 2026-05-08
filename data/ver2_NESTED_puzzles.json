@@ -168,5 +168,217 @@
       "answer": "CS3110",
       "children" : []
     }
+  }, 
+  {
+    "id": 4,
+    "difficulty": "medium",
+    "theme": "space exploration",
+    "title": "Apollo 11 Lands on the Moon",
+    "root": {
+      "label": "{0} 11 lands on the {1}",
+      "answer": "Apollo 11 lands on the Moon",
+      "children": [
+        {
+          "label": "Greek god linked with the sun ☀️",
+          "answer": "Apollo",
+          "children": [
+            {
+              "label": "🎸 Van {0}",
+              "answer": "Halen",
+              "children": [
+                {
+                  "label": "tiny grain used in bread 🌾",
+                  "answer": "wheat",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Earth's natural {0}",
+          "answer": "Moon",
+          "children": [
+            {
+              "label": "opposite of afternoon",
+              "answer": "morning",
+              "children": [
+                {
+                  "label": "☀️ rises in the east",
+                  "answer": "sun",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }, 
+  {
+    "id": 5,
+    "difficulty": "medium",
+    "theme": "technology",
+    "title": "The iPhone Launches",
+    "root": {
+      "label": "the {0} launches",
+      "answer": "the iPhone launches",
+      "children": [
+        {
+          "label": "📱 product by Apple",
+          "answer": "iPhone",
+          "children": [
+            {
+              "label": "fruit company 🍎",
+              "answer": "Apple",
+              "children": [
+                {
+                  "label": "doctor's recommendation: an apple a day keeps the ___ away",
+                  "answer": "doctor",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "label": "device used to call someone ☎️",
+              "answer": "phone",
+              "children": [
+                {
+                  "label": "camera setting for brightness 📷",
+                  "answer": "exposure",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }, 
+  {
+    "id": 6,
+    "difficulty": "easy",
+    "theme": "movies",
+    "title": "Jurassic Park Premieres",
+    "root": {
+      "label": "{0} Park premieres",
+      "answer": "Jurassic Park premieres",
+      "children": [
+        {
+          "label": "dinosaur era before Cretaceous 🦖",
+          "answer": "Jurassic",
+          "children": [
+            {
+              "label": "court official with a hammer ⚖️",
+              "answer": "judge",
+              "children": []
+            }
+          ]
+        },
+        {
+          "label": "Central {0} in NYC",
+          "answer": "Park",
+          "children": [
+            {
+              "label": "leave a car for a while 🚗",
+              "answer": "park",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  }, 
+  {
+    "id": 7,
+    "difficulty": "medium",
+    "theme": "internet history",
+    "title": "Google Goes Public",
+    "root": {
+      "label": "{0} goes public",
+      "answer": "Google goes public",
+      "children": [
+        {
+          "label": "most used search engine 🔎",
+          "answer": "Google",
+          "children": [
+            {
+              "label": "look up online 🔍",
+              "answer": "search",
+              "children": [
+                {
+                  "label": "Ctrl + {0} in many apps",
+                  "answer": "F",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "label": "email service by Google 📧",
+              "answer": "Gmail",
+              "children": [
+                {
+                  "label": "traditional paper message ✉️",
+                  "answer": "mail",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }, 
+  {
+    "id": 8,
+    "difficulty": "easy",
+    "theme": "movies",
+    "title": "Jurassic Park Premieres",
+    "root": {
+      "label": "Jurassic {0} premieres",
+      "answer": "Jurassic Park premieres",
+      "children": [
+        {
+          "label": "place with trees, benches, and paths 🌳",
+          "answer": "Park",
+          "children": []
+        }
+      ]
+    }
+  }, 
+  {
+    "id": 9,
+    "difficulty": "easy",
+    "theme": "music",
+    "title": "Thriller Tops the Charts",
+    "root": {
+      "label": "{0} tops the charts",
+      "answer": "Thriller tops the charts",
+      "children": [
+        {
+          "label": "Michael Jackson album with zombies 🧟",
+          "answer": "Thriller",
+          "children": []
+        }
+      ]
+    }
+  }, 
+   {
+    "id": 10,
+    "difficulty": "easy",
+    "theme": "sports",
+    "title": "The World Cup Begins",
+    "root": {
+      "label": "the World {0} begins",
+      "answer": "the World Cup begins",
+      "children": [
+        {
+          "label": "small drinking container ☕",
+          "answer": "Cup",
+          "children": []
+        }
+      ]
+    }
   }
+
 ]
