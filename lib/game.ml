@@ -66,17 +66,19 @@ let rec render_node (n : node) : string =
     let body =
       tokenize_label n.label |> List.map part_to_string |> String.concat ""
     in
-    "[" ^ body ^ "]"
+    if List.for_all (fun c -> c.solved) n.children then "[" ^ body ^ "]"
+    else body
 
 (* PURPOSE: produce the full puzzle display string shown to the player. STEPS:
    1. Call render_node on state.root. 2. Strip the outermost "[" and "]" — the
    root isn't inside anything, so the final string (e.g. "GM makes its 100
    millionth car") should not be bracketed. *)
-let render (s : state) : string =
-  if s.root.solved then s.root.answer
-  else
-    let full = render_node s.root in
-    String.sub full 1 (String.length full - 2)
+
+(* let render (s : state) : string = if s.root.solved then s.root.answer else
+   let full = render_node s.root in String.sub full 1 (String.length full -
+   2) *)
+
+let render (s : state) : string = render_node s.root
 
 (* PURPOSE: collect every node the player can currently attempt — unsolved nodes
    whose children are ALL solved. At start these are the leaves. STEPS: 1. DFS

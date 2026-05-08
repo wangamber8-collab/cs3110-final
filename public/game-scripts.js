@@ -13,7 +13,13 @@ ws.onmessage = (event) => {
     console.log(msg);
 
     if (msg.startsWith("BRACKET|")) {
-        bracket1.textContent = "[" + msg.slice("BRACKET|".length) + "]";
+        const text = msg.slice("BRACKET|".length);
+
+        bracket1.innerHTML = text.replace(
+        /\[([^\[\]]+)\]/g,
+        '<span class="chip">[$1]</span>'
+        );
+        
         showFeedback("correct");
     }
 
@@ -23,6 +29,9 @@ ws.onmessage = (event) => {
 
     else if (msg.startsWith("WIN|")) {
         console.log("WIN message received:", msg);
+        
+        bracket1.textContent = msg.slice("WIN|".length);
+
         showVictory({ puzzleName: "Bracket City" });
     }
 };
