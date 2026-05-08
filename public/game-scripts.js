@@ -23,6 +23,16 @@ ws.onmessage = (event) => {
         showFeedback("correct");
     }
 
+    else if (msg.startsWith("PROGRESS|")) {
+        const parts = msg.slice("PROGRESS|".length).split("|");
+        const solved = parseInt(parts[0], 10);
+        const total = parseInt(parts[1], 10);
+        const pct = total > 0 ? (solved / total) * 100 : 0;
+        document.getElementById("progress-bar").style.width = pct + "%";
+        document.getElementById("progress-label").textContent =
+            `${solved} of ${total} solved`;
+    }
+
     else if (msg.startsWith("INCORRECT|")) {
         showFeedback("incorrect");
     }

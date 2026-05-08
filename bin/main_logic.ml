@@ -102,6 +102,11 @@ let send_bracket (ws : Dream.websocket) (state : Types.puzzle ref) : unit Lwt.t
     =
   send_to ws ("BRACKET|" ^ Game.render !state)
 
+let send_progress (ws : Dream.websocket) (state : Types.puzzle ref) : unit Lwt.t
+    =
+  let solved, total = Game.progress !state in
+  send_to ws (Printf.sprintf "PROGRESS|%d|%d" solved total)
+
 (* -----------------------------------------------------------------------------
    STUB: _send_exposed — Tell the client which answers are currently guessable.
    -----------------------------------------------------------------------------
@@ -255,6 +260,7 @@ let ws_handler (req : Dream.request) : Dream.response Lwt.t =
               (* Push the initial render so the player sees the puzzle on
                  load. *)
               let* () = send_bracket ws state in
+              let* () = send_progress ws state in
 
               (* STUB: also push the initial exposed set once frontend handles it.
                  Uncomment the line below when _send_exposed is activated. *)
@@ -304,6 +310,7 @@ let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
   let correct = Game.submit guess !state in
   if correct then begin
     let* () = send_bracket ws state in
+    let* () = send_progress ws state in
     let won = Game.is_won !state in
     Dream.log "is_won = %b" won;
     if won then _send_win ws state else _send_exposed ws state
