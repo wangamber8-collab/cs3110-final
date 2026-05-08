@@ -190,7 +190,15 @@ let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
   if correct then begin
     (* Tree was mutated in place; re-rendering now shows the updated state. *)
     let* () = send_bracket ws state in
-    if Game.is_won !state then _send_win ws state else _send_exposed ws state
+    let exposed = Game.exposed !state in
+    match exposed with
+    | [ n ] when n == !state.root ->
+        n.solved <- true;
+        let* () = send_bracket ws state in
+        _send_win ws state
+    | _ ->
+        if Game.is_won !state then _send_win ws state
+        else _send_exposed ws state
   end
   else _send_incorrect ws guess
 
