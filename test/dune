@@ -3,3 +3,9 @@
  (libraries ounit2 cs3110_final)
  (deps
   (glob_files_rec ../data/*)))
+
+(test
+ (name test_score)
+ (libraries ounit2 cs3110_final)
+ (deps
+  (glob_files_rec ../data/*)))

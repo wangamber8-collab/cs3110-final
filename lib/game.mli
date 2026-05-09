@@ -75,3 +75,15 @@ val hint_first_letter : string -> state -> string option
     gives a hint, and the second click reveals/solves that currently answerable
     bracket. *)
 val reveal_by_body : string -> state -> bool
+
+(** [hint_answer_length chip_body s] finds the exposed node whose rendered
+    body matches [chip_body] and returns [Some n] where [n] is the character
+    count of that node's answer. Returns [None] if no exposed node matches or
+    the answer is empty. *)
+val hint_answer_length : string -> state -> int option
+
+(** [hint_word_count chip_body s] finds the exposed node whose rendered body
+    matches [chip_body] and returns [Some n] where [n] is the number of
+    space-separated words in that node's answer. Returns [None] if no exposed
+    node matches or the answer is empty. *)
+val hint_word_count : string -> state -> int option

@@ -89,11 +89,12 @@ function showVictory({ puzzleName }) {
 
     const stats = document.getElementById("vc-stats");
     if (stats && latestStats !== "") {
-        const [total, wrong, hints, accuracy] = latestStats.split("|");
+        const [total, wrong, hints, accuracy, score, grade, maxStreak] = latestStats.split("|");
         const correct = Number(total) - Number(wrong);
 
-        stats.textContent =
-            `Guesses: ${total} | Correct: ${correct} | Wrong: ${wrong} | Hints: ${hints} | Accuracy: ${accuracy}%`;
+        stats.innerHTML =
+            `<strong>Score: ${score} &nbsp;·&nbsp; Grade: ${grade} &nbsp;·&nbsp; Best streak: ${maxStreak}</strong><br>` +
+            `Guesses: ${total} &nbsp;|&nbsp; Correct: ${correct} &nbsp;|&nbsp; Wrong: ${wrong} &nbsp;|&nbsp; Hints: ${hints} &nbsp;|&nbsp; Accuracy: ${accuracy}%`;
     }
 
     const overlay = document.getElementById('victory-overlay');
