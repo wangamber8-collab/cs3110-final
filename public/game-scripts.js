@@ -92,12 +92,6 @@ ws.onmessage = (event) => {
 
 else if (msg.startsWith("STATS|")) {
     latestStats = msg.slice("STATS|".length);
-
-    const parts = latestStats.split("|");
-    const seconds = Number(parts[4]);
-
-    document.getElementById("timer-label").textContent =
-        formatTime(seconds);
 }
 
     else if (msg.startsWith("WIN|")) {
@@ -128,12 +122,13 @@ function showVictory({ puzzleName }) {
 
     const stats = document.getElementById("vc-stats");
     if (stats && latestStats !== "") {
-    const [total, wrong, hints, accuracy, seconds] = latestStats.split("|");
-    const correct = Number(total) - Number(wrong);
+        const [total, wrong, hints, accuracy, score, , maxStreak] = latestStats.split("|");
+        const correct = Number(total) - Number(wrong);
 
-    stats.textContent =
-    `Time: ${formatTime(Number(seconds))} | Guesses: ${total} | Correct: ${correct} | 
-    Wrong: ${wrong} | Hints: ${hints} | Accuracy: ${accuracy}%`;   }
+        stats.innerHTML =
+            `<strong>Score: ${score} &nbsp;·&nbsp; Best streak: ${maxStreak} &nbsp;·&nbsp; Time: ${formatTime(timerSeconds)}</strong><br>` +
+            `Guesses: ${total} &nbsp;|&nbsp; Correct: ${correct} &nbsp;|&nbsp; Wrong: ${wrong} &nbsp;|&nbsp; Hints: ${hints} &nbsp;|&nbsp; Accuracy: ${accuracy}%`;
+    }
 
     const overlay = document.getElementById('victory-overlay');
     overlay.style.display = 'flex';

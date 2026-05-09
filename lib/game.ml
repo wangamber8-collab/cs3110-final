@@ -198,3 +198,32 @@ let reveal_by_body (chip_body : string) (s : state) : bool =
   | Some n ->
       n.solved <- true;
       true
+
+(* PURPOSE: given the inner text of a clicked chip, find the matching exposed
+   node and return the character count of its answer. Returns None if no
+   exposed node matches or the answer is empty. Used to let the player know
+   how many characters to type before committing a guess. *)
+let hint_answer_length (chip_body : string) (s : state) : int option =
+  match List.find_opt (fun n -> body_of_exposed_node n = chip_body) (exposed s) with
+  | None -> None
+  | Some n ->
+      let len = String.length n.answer in
+      if len = 0 then None else Some len
+
+(* PURPOSE: given the inner text of a clicked chip, find the matching exposed
+   node and return the number of words in its answer. Words are separated by
+   one or more space characters. Returns None if no exposed node matches or
+   the answer is empty. Useful for multi-word answers where length alone is
+   not enough information. *)
+let hint_word_count (chip_body : string) (s : state) : int option =
+  match List.find_opt (fun n -> body_of_exposed_node n = chip_body) (exposed s) with
+  | None -> None
+  | Some n ->
+      let trimmed = String.trim n.answer in
+      if String.length trimmed = 0 then None
+      else
+        let words =
+          String.split_on_char ' ' trimmed
+          |> List.filter (fun w -> String.length w > 0)
+        in
+        Some (List.length words)
