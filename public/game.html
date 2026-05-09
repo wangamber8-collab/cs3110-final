@@ -39,6 +39,21 @@
     <!-- 
     <input type="text" id="guess" placeholder="Type your guess here">
     <button id="submit">Submit</button> -->
+    <!-- Difficulty picker: shown before first puzzle if no difficulty in URL -->
+    <div id="difficulty-overlay"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; padding:2rem 2.5rem; text-align:center; width:320px; animation:pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;">
+            <h2 style="font-size:20px;font-weight:500;margin:0 0 6px;">Choose Difficulty</h2>
+            <p style="font-size:13px;color:#888;margin:0 0 1.5rem;">Pick a level to start playing.</p>
+            <button onclick="startWithDifficulty('easy')"
+                style="width:100%;padding:10px;background:#449a3c;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:8px;">Easy</button>
+            <button onclick="startWithDifficulty('medium')"
+                style="width:100%;padding:10px;background:#c8961a;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:8px;">Medium</button>
+            <button onclick="startWithDifficulty('hard')"
+                style="width:100%;padding:10px;background:#b03a2e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;">Hard</button>
+        </div>
+    </div>
+
     <div id="victory-overlay"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:999; align-items:center; justify-content:center;">
         <div id="victory-card"
@@ -49,10 +64,16 @@
             <p id="vc-puzzle-name" style="font-size:13px;color:#888;margin:0 0 4px;"></p>
             <h2 style="font-size:22px;font-weight:500;margin:0 0 4px;">Victory!</h2>
             <p style="font-size:14px;color:#888;margin:0;">All brackets filled correctly.</p>
-            <p id="vc-stats" style="font-size:14px;color:#555;margin:12px 0 18px;"></p>
-            <button onclick="loadNextPuzzle()"
-                style="width:100%;padding:10px;background:#639922;color:#27500A;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:8px;">Next
-                puzzle</button>
+            <p id="vc-stats" style="font-size:14px;color:#555;margin:12px 0 12px;"></p>
+            <p style="font-size:12px;color:#aaa;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.1em;">Next puzzle difficulty</p>
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+                <button onclick="loadNextPuzzle('easy')"
+                    style="flex:1;padding:8px 0;background:#449a3c;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;">Easy</button>
+                <button onclick="loadNextPuzzle('medium')"
+                    style="flex:1;padding:8px 0;background:#c8961a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;">Medium</button>
+                <button onclick="loadNextPuzzle('hard')"
+                    style="flex:1;padding:8px 0;background:#b03a2e;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;">Hard</button>
+            </div>
             <button onclick="closeVictory()"
                 style="width:100%;padding:10px;background:transparent;color:#888;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;">Back</button>
         </div>
