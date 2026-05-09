@@ -126,7 +126,7 @@ function showVictory({ puzzleName }) {
         const correct = Number(total) - Number(wrong);
 
         stats.innerHTML =
-            `<strong>Score: ${score} &nbsp;·&nbsp; Best streak: ${maxStreak} &nbsp;·&nbsp; Time: ${formatTime(timerSeconds)}</strong><br>` +
+            `<strong>Score: ${score} &nbsp;|&nbsp; Best streak: ${maxStreak} &nbsp;|    &nbsp; Time: ${formatTime(timerSeconds)}</strong><br>` +
             `Guesses: ${total} &nbsp;|&nbsp; Correct: ${correct} &nbsp;|&nbsp; Wrong: ${wrong} &nbsp;|&nbsp; Hints: ${hints} &nbsp;|&nbsp; Accuracy: ${accuracy}%`;
     }
 

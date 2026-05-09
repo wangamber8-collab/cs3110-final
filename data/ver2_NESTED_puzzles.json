@@ -379,6 +379,45 @@
         }
       ]
     }
+  },
+{
+  "id": 11,
+  "difficulty": "easy",
+  "theme": "computer science",
+  "title": "CS 3110 Functional Programming",
+  "root": {
+    "label": "Cornell's {0} teaches functional programming in {1}",
+    "answer": "Cornell's CS3110 teaches functional programming in OCaml",
+    "children": [
+      {
+        "label": "{0} {1}",
+        "answer": "CS3110",
+        "children": [
+          {
+            "label": "Computer Science initials",
+            "answer": "CS",
+            "children": []
+          },
+          {
+            "label": "course number after {0}",
+            "answer": "3110",
+            "children": []
+              
+          }
+        ]
+      },
+      {
+        "label": "{0}{1}",
+        "answer": "OCaml",
+        "children": [
+          {
+            "label": "ML-family language with a camel mascot 🐫",
+            "answer": "OCaml",
+            "children": []
+          }
+        ]
+      }
+    ]
   }
-
+}
 ]
