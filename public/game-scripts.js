@@ -96,12 +96,16 @@ else if (msg.startsWith("STATS|")) {
 }
 
     else if (msg.startsWith("WIN|")) {
-        console.log("WIN message received:", msg);
-        
-        bracket1.textContent = msg.slice("WIN|".length);
+    console.log("WIN message received:", msg);
 
-        showVictory({ puzzleName: "Bracket City" });
-    }
+    const finalPuzzle = msg.slice("WIN|".length);
+    bracket1.textContent = finalPuzzle;
+
+    showVictory({
+        puzzleName: "Bracket City",
+        finalPuzzle: finalPuzzle
+    });
+}
 };
 
 submit.onclick = () => {
@@ -116,10 +120,15 @@ guess.addEventListener("keypress", (e) => {
     }
 });
 
-function showVictory({ puzzleName }) {
+function showVictory({ puzzleName, finalPuzzle }) {
     clearInterval(timerInterval);
     
     document.getElementById('vc-puzzle-name').textContent = puzzleName;
+
+    const finalPuzzleText = document.getElementById("vc-final-puzzle");
+    if (finalPuzzleText && finalPuzzle) {
+finalPuzzleText.innerHTML =
+    `<span style="font-weight:700; font-size:16px;">${finalPuzzle}</span>`;    }
 
     const stats = document.getElementById("vc-stats");
     if (stats && latestStats !== "") {
