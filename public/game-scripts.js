@@ -1,6 +1,27 @@
 const o = document.getElementById("out");
-const diff = new URLSearchParams(location.search).get("difficulty") || "hard";
-const ws = new WebSocket(`ws://${location.host}/ws?difficulty=${diff}`);
+let diff = new URLSearchParams(location.search).get("difficulty");
+let ws = null;
+
+if (!diff) {
+    document.getElementById("difficulty-overlay").style.display = "flex";
+} else {
+    connectWS(diff);
+}
+
+function startWithDifficulty(chosen) {
+    diff = chosen;
+    document.getElementById("difficulty-overlay").style.display = "none";
+    connectWS(diff);
+}
+
+function connectWS(difficulty) {
+    ws = new WebSocket(`ws://${location.host}/ws?difficulty=${difficulty}`);
+    ws.onopen = () => console.log("WebSocket connected");
+    ws.onerror = (e) => console.error("WebSocket error:", e);
+    ws.onclose = (e) => console.log("WebSocket closed:", e.code, e.reason);
+    ws.onmessage = handleMessage;
+}
+
 const guess = document.getElementById("guess");
 const submit = document.getElementById("submit");
 const bracket1 = document.getElementById("bracket1");
@@ -29,11 +50,7 @@ function formatTime(seconds) {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-ws.onopen = () => console.log("WebSocket connected");
-ws.onerror = (e) => console.error("WebSocket error:", e);
-ws.onclose = (e) => console.log("WebSocket closed:", e.code, e.reason);
-
-ws.onmessage = (event) => {
+function handleMessage(event) {
     const msg = event.data;
     console.log(msg);
 
@@ -109,13 +126,13 @@ else if (msg.startsWith("STATS|")) {
 };
 
 submit.onclick = () => {
-    ws.send(guess.value);
+    if (ws) { ws.send(guess.value); }
     guess.value = "";
 };
 
 guess.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
-        ws.send(guess.value);
+        if (ws) { ws.send(guess.value); }
         guess.value = "";
     }
 });
@@ -153,8 +170,8 @@ function closeVictory() {
     document.getElementById('victory-overlay').style.display = 'none';
 }
 
-function loadNextPuzzle() {
-    window.location.href = `game.html?difficulty=${diff}`;
+function loadNextPuzzle(chosen) {
+    window.location.href = `game.html?difficulty=${chosen || diff}`;
 }
 
 bracket1.addEventListener("click", (e) => {
