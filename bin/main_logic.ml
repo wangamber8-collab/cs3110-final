@@ -325,26 +325,19 @@ let handle_reveal (ws : Dream.websocket) (state : Types.puzzle ref)
   else Lwt.return_unit
 
 let ws_handler (req : Dream.request) : Dream.response Lwt.t =
-  (* STUB: [req] is ignored until difficulty comes from the browser. Replace
-     [ignore req] with query-param extraction when ready. *)
-  ignore req;
+  let diff =
+    Dream.query req "difficulty" |> Option.value ~default:"hard"
+  in
   Dream.websocket (fun ws ->
       clients := ws :: !clients;
-
-      (* Parser.choose_puzzle returns an option; we handle None explicitly
-         rather than calling Option.get so the server never crashes on bad
-         data. *)
-      let state_opt = Parser.choose_puzzle default_difficulty all_puzzles in
-
-      (* Lwt.finalize ensures cleanup runs even if an exception bubbles up. *)
+      let state_opt = Parser.choose_puzzle diff all_puzzles in
       Lwt.finalize
         (fun () ->
           match state_opt with
           | None ->
-              Dream.log "No puzzles found for difficulty: %s" default_difficulty;
+              Dream.log "No puzzles found for difficulty: %s" diff;
               send_to ws
-                ("ERROR|No puzzles available for difficulty: "
-               ^ default_difficulty)
+                ("ERROR|No puzzles available for difficulty: " ^ diff)
           | Some puzzle ->
               let state = ref puzzle in
               let session = ref (Score.make_session ()) in
