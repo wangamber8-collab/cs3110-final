@@ -1,5 +1,6 @@
 const o = document.getElementById("out");
-const ws = new WebSocket(`ws://${location.host}/ws`);
+const diff = new URLSearchParams(location.search).get("difficulty") || "hard";
+const ws = new WebSocket(`ws://${location.host}/ws?difficulty=${diff}`);
 const guess = document.getElementById("guess");
 const submit = document.getElementById("submit");
 const bracket1 = document.getElementById("bracket1");
@@ -144,7 +145,7 @@ function closeVictory() {
 }
 
 function loadNextPuzzle() {
-    window.location.reload();
+    window.location.href = `game.html?difficulty=${diff}`;
 }
 
 bracket1.addEventListener("click", (e) => {

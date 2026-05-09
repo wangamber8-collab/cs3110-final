@@ -1,7 +1,6 @@
 open Types
 open Yojson.Basic.Util
 
-(*parses bracket information in puzzle into node*)
 let rec parse_node json =
   {
     label = json |> member "label" |> to_string;
@@ -23,8 +22,6 @@ let parse_puzzle json =
 let load_puzzles filepath =
   Yojson.Basic.from_file filepath |> to_list |> List.map parse_puzzle
 
-(*returns puzzle Option with random puzzle of given difficulty and None if
-  difficulty doesn't exist*)
 let choose_puzzle difficulty puzzles =
   Random.self_init ();
   let filtered =

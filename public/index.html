@@ -93,7 +93,7 @@
 
   <nav>
     <a href="#" class="active">Home</a>
-    <a href="game.html">Play</a>
+    <a href="game.html?difficulty=hard">Play</a>
   </nav>
 
   <div class="page-grid">
@@ -115,6 +115,29 @@
       </div>
     </div>
 
+    <div style="margin-top:2.5rem;">
+      <div class="panel-title">Choose Difficulty</div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+        <a href="game.html?difficulty=easy"
+           style="font-family:'DM Mono',monospace;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;
+                  text-decoration:none;padding:0.6rem 1.8rem;border:1px solid #c8b89a;color:#1a1510;
+                  transition:background 0.15s,color 0.15s;"
+           onmouseover="this.style.background='#449a3c';this.style.color='#f5f0e8';"
+           onmouseout="this.style.background='';this.style.color='#1a1510';">Easy</a>
+        <a href="game.html?difficulty=medium"
+           style="font-family:'DM Mono',monospace;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;
+                  text-decoration:none;padding:0.6rem 1.8rem;border:1px solid #c8b89a;color:#1a1510;
+                  transition:background 0.15s,color 0.15s;"
+           onmouseover="this.style.background='#c8961a';this.style.color='#f5f0e8';"
+           onmouseout="this.style.background='';this.style.color='#1a1510';">Medium</a>
+        <a href="game.html?difficulty=hard"
+           style="font-family:'DM Mono',monospace;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;
+                  text-decoration:none;padding:0.6rem 1.8rem;border:1px solid #c8b89a;color:#1a1510;
+                  transition:background 0.15s,color 0.15s;"
+           onmouseover="this.style.background='#b03a2e';this.style.color='#f5f0e8';"
+           onmouseout="this.style.background='';this.style.color='#1a1510';">Hard</a>
+      </div>
+    </div>
 
 </div>
 </body>
