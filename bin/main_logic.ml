@@ -222,7 +222,9 @@ let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
   let exposed_before = Game.exposed !state in
   let normed = Game.normalize guess in
   let maybe_node =
-    List.find_opt (fun n -> Game.normalize n.answer = normed) exposed_before
+    List.find_opt
+      (fun (n : Types.node) -> Game.normalize n.answer = normed)
+      exposed_before
   in
   let correct = Game.submit guess !state in
   if correct then begin
