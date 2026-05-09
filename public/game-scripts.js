@@ -4,6 +4,29 @@ const guess = document.getElementById("guess");
 const submit = document.getElementById("submit");
 const bracket1 = document.getElementById("bracket1");
 let latestStats = "";
+let timerSeconds = 0;
+let timerInterval = null;
+
+function startTimer() {
+    if (timerInterval !== null) return;
+
+    timerInterval = setInterval(() => {
+        timerSeconds += 1;
+        document.getElementById("timer-label").textContent =
+            formatTime(timerSeconds);
+    }, 1000);
+}
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+
+    if (mins === 0) {
+        return `${secs}s`;
+    }
+
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
 
 ws.onopen = () => console.log("WebSocket connected");
 ws.onerror = (e) => console.error("WebSocket error:", e);
@@ -15,6 +38,7 @@ ws.onmessage = (event) => {
 
     if (msg.startsWith("BRACKET|")) {
     const text = msg.slice("BRACKET|".length);
+    startTimer();
 
     bracket1.innerHTML = text.replace(
         /\[([^\[\]]+)\]/g,
@@ -59,8 +83,21 @@ ws.onmessage = (event) => {
         showFeedback("incorrect");
     }
 
-    else if (msg.startsWith("STATS|")) {
+    else if (msg.startsWith("TIMER|")) {
+    const seconds = Number(msg.slice("TIMER|".length));
+
+    document.getElementById("timer-label").textContent =
+        formatTime(seconds);
+}
+
+else if (msg.startsWith("STATS|")) {
     latestStats = msg.slice("STATS|".length);
+
+    const parts = latestStats.split("|");
+    const seconds = Number(parts[4]);
+
+    document.getElementById("timer-label").textContent =
+        formatTime(seconds);
 }
 
     else if (msg.startsWith("WIN|")) {
@@ -85,16 +122,18 @@ guess.addEventListener("keypress", (e) => {
 });
 
 function showVictory({ puzzleName }) {
+    clearInterval(timerInterval);
+    
     document.getElementById('vc-puzzle-name').textContent = puzzleName;
 
     const stats = document.getElementById("vc-stats");
     if (stats && latestStats !== "") {
-        const [total, wrong, hints, accuracy] = latestStats.split("|");
-        const correct = Number(total) - Number(wrong);
+    const [total, wrong, hints, accuracy, seconds] = latestStats.split("|");
+    const correct = Number(total) - Number(wrong);
 
-        stats.textContent =
-            `Guesses: ${total} | Correct: ${correct} | Wrong: ${wrong} | Hints: ${hints} | Accuracy: ${accuracy}%`;
-    }
+    stats.textContent =
+    `Time: ${formatTime(Number(seconds))} | Guesses: ${total} | Correct: ${correct} | 
+    Wrong: ${wrong} | Hints: ${hints} | Accuracy: ${accuracy}%`;   }
 
     const overlay = document.getElementById('victory-overlay');
     overlay.style.display = 'flex';

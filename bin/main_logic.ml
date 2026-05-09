@@ -107,6 +107,12 @@ let send_progress (ws : Dream.websocket) (state : Types.puzzle ref) : unit Lwt.t
   let solved, total = Game.progress !state in
   send_to ws (Printf.sprintf "PROGRESS|%d|%d" solved total)
 
+let elapsed_seconds (start_time : float) : int =
+  int_of_float (Unix.gettimeofday () -. start_time)
+
+let send_timer (ws : Dream.websocket) (start_time : float) : unit Lwt.t =
+  send_to ws (Printf.sprintf "TIMER|%d" (elapsed_seconds start_time))
+
 (* -----------------------------------------------------------------------------
    STUB: _send_exposed — Tell the client which answers are currently guessable.
    -----------------------------------------------------------------------------
@@ -169,14 +175,16 @@ let _send_incorrect (ws : Dream.websocket) (guess : string) : unit Lwt.t =
    ----------------------------------------------------------------------------- *)
 
 let send_stats (ws : Dream.websocket) (total_guesses : int ref)
-    (wrong_guesses : int ref) (hints_used : int ref) : unit Lwt.t =
+    (wrong_guesses : int ref) (hints_used : int ref) (start_time : float) :
+    unit Lwt.t =
   let correct_guesses = !total_guesses - !wrong_guesses in
   let accuracy =
     if !total_guesses = 0 then 100 else correct_guesses * 100 / !total_guesses
   in
+  let time_elapsed = elapsed_seconds start_time in
   send_to ws
-    (Printf.sprintf "STATS|%d|%d|%d|%d" !total_guesses !wrong_guesses
-       !hints_used accuracy)
+    (Printf.sprintf "STATS|%d|%d|%d|%d|%d" !total_guesses !wrong_guesses
+       !hints_used accuracy time_elapsed)
 
 (* -----------------------------------------------------------------------------
    STUB: _send_win — Tell the client they have solved the whole puzzle.
@@ -217,7 +225,7 @@ let _send_win (ws : Dream.websocket) (state : Types.puzzle ref) : unit Lwt.t =
    ----------------------------------------------------------------------------- *)
 let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
     (total_guesses : int ref) (wrong_guesses : int ref) (hints_used : int ref)
-    (guess : string) : unit Lwt.t =
+    (start_time : float) (guess : string) : unit Lwt.t =
   let correct = Game.submit guess !state in
   total_guesses := !total_guesses + 1;
   if not correct then wrong_guesses := !wrong_guesses + 1;
@@ -231,11 +239,16 @@ let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
         n.solved <- true;
         let* () = send_bracket ws state in
         let* () = send_progress ws state in
-        let* () = send_stats ws total_guesses wrong_guesses hints_used in
+        let* () = send_timer ws start_time in
+        let* () =
+          send_stats ws total_guesses wrong_guesses hints_used start_time
+        in
         _send_win ws state
     | _ ->
         if Game.is_won !state then begin
-          let* () = send_stats ws total_guesses wrong_guesses hints_used in
+          let* () =
+            send_stats ws total_guesses wrong_guesses hints_used start_time
+          in
           _send_win ws state
         end
         else _send_exposed ws state
@@ -278,7 +291,7 @@ let handle_hint (ws : Dream.websocket) (state : Types.puzzle ref)
 
 let handle_reveal (ws : Dream.websocket) (state : Types.puzzle ref)
     (total_guesses : int ref) (wrong_guesses : int ref) (hints_used : int ref)
-    (chip_body : string) : unit Lwt.t =
+    (start_time : float) (chip_body : string) : unit Lwt.t =
   if Game.reveal_by_body chip_body !state then begin
     hints_used := !hints_used + 1;
     let* () = send_bracket ws state in
@@ -290,11 +303,15 @@ let handle_reveal (ws : Dream.websocket) (state : Types.puzzle ref)
         n.solved <- true;
         let* () = send_bracket ws state in
         let* () = send_progress ws state in
-        let* () = send_stats ws total_guesses wrong_guesses hints_used in
+        let* () =
+          send_stats ws total_guesses wrong_guesses hints_used start_time
+        in
         _send_win ws state
     | _ ->
         if Game.is_won !state then begin
-          let* () = send_stats ws total_guesses wrong_guesses hints_used in
+          let* () =
+            send_stats ws total_guesses wrong_guesses hints_used start_time
+          in
           _send_win ws state
         end
         else Lwt.return_unit
@@ -327,10 +344,12 @@ let ws_handler (req : Dream.request) : Dream.response Lwt.t =
               let total_guesses = ref 0 in
               let wrong_guesses = ref 0 in
               let hints_used = ref 0 in
+              let start_time = Unix.gettimeofday () in
               (* Push the initial render so the player sees the puzzle on
                  load. *)
               let* () = send_bracket ws state in
               let* () = send_progress ws state in
+              let* () = send_timer ws start_time in
 
               (* STUB: also push the initial exposed set once frontend handles it.
                  Uncomment the line below when _send_exposed is activated. *)
@@ -353,11 +372,11 @@ let ws_handler (req : Dream.request) : Dream.response Lwt.t =
                         String.length raw >= 7 && String.sub raw 0 7 = "REVEAL|"
                       then
                         handle_reveal ws state total_guesses wrong_guesses
-                          hints_used
+                          hints_used start_time
                           (String.sub raw 7 (String.length raw - 7))
                       else
                         handle_guess ws state total_guesses wrong_guesses
-                          hints_used raw
+                          hints_used start_time raw
                     in
                     keep_open ()
               in

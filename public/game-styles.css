@@ -168,3 +168,7 @@ body {
   border-radius: 4px;
   transition: width 0.4s ease;
 }
+#timer-label {
+    display: block;
+    margin-top: 8px;
+}
