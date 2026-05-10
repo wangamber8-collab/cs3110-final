@@ -53,14 +53,16 @@ let choose_puzzle (difficulty : string) (puzzles : Types.puzzle list) :
         Hashtbl.add remaining_by_difficulty difficulty q;
         q
   in
+
   match !queue with
   | puzzle :: rest ->
       queue := rest;
       Some puzzle
   | [] -> (
       let fresh = fresh_queue_for_difficulty difficulty puzzles in
-      match fresh with
-      | [] -> None
+      queue := fresh;
+      match !queue with
       | puzzle :: rest ->
           queue := rest;
-          Some puzzle)
+          Some puzzle
+      | [] -> None)

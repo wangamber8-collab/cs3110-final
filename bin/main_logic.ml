@@ -36,18 +36,7 @@ open Cs3110_final
 let all_puzzles : Types.puzzle list =
   Parser.load_puzzles "data/ver2_NESTED_puzzles.json"
 
-(* -----------------------------------------------------------------------------
-   DEFAULT DIFFICULTY
-   -----------------------------------------------------------------------------
-   STUB: This is hardcoded to "hard" for now. Once a lobby or difficulty-select
-   page exists, difficulty should be passed as a query parameter on the
-   WebSocket URL (e.g. ws://localhost:8080/ws?difficulty=easy) and extracted
-   from the Dream.request inside ws_handler.
-
-   To change difficulty right now, edit this string. Valid values mirror what is
-   in the JSON: "easy", "medium", "hard".
-   ----------------------------------------------------------------------------- *)
-let default_difficulty : string = "hard"
+(* let default_difficulty : string = "hard" *)
 
 (* -----------------------------------------------------------------------------
    CONNECTED CLIENTS LIST
@@ -323,26 +312,20 @@ let handle_reveal (ws : Dream.websocket) (state : Types.puzzle ref)
   else Lwt.return_unit
 
 let ws_handler (req : Dream.request) : Dream.response Lwt.t =
-  (* STUB: [req] is ignored until difficulty comes from the browser. Replace
-     [ignore req] with query-param extraction when ready. *)
-  ignore req;
+  let diff = Dream.query req "difficulty" |> Option.value ~default:"hard" in
+  Dream.log "Chosen difficulty from query: %s" diff;
   Dream.websocket (fun ws ->
       clients := ws :: !clients;
 
-      (* Parser.choose_puzzle returns an option; we handle None explicitly
-         rather than calling Option.get so the server never crashes on bad
-         data. *)
-      let state_opt = Parser.choose_puzzle default_difficulty all_puzzles in
+      let state_opt = Parser.choose_puzzle diff all_puzzles in
 
       (* Lwt.finalize ensures cleanup runs even if an exception bubbles up. *)
       Lwt.finalize
         (fun () ->
           match state_opt with
           | None ->
-              Dream.log "No puzzles found for difficulty: %s" default_difficulty;
-              send_to ws
-                ("ERROR|No puzzles available for difficulty: "
-               ^ default_difficulty)
+              Dream.log "No puzzles found for difficulty: %s" diff;
+              send_to ws ("ERROR|No puzzles available for difficulty: " ^ diff)
           | Some puzzle ->
               let state = ref puzzle in
               let session = ref (Score.make_session ()) in
