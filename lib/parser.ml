@@ -22,15 +22,45 @@ let parse_puzzle json =
 let load_puzzles filepath =
   Yojson.Basic.from_file filepath |> to_list |> List.map parse_puzzle
 
-let choose_puzzle difficulty puzzles =
-  Random.self_init ();
-  let filtered =
-    List.filter
-      (fun p -> difficulty = p.difficulty && p.solved_puzzle = false)
-      puzzles
+let remaining_by_difficulty : (string, Types.puzzle list ref) Hashtbl.t =
+  Hashtbl.create 8
+
+let () = Random.self_init ()
+
+let shuffle_list (lst : 'a list) : 'a list =
+  let arr = Array.of_list lst in
+  for i = Array.length arr - 1 downto 1 do
+    let j = Random.int (i + 1) in
+    let temp = arr.(i) in
+    arr.(i) <- arr.(j);
+    arr.(j) <- temp
+  done;
+  Array.to_list arr
+
+let fresh_queue_for_difficulty (difficulty : string)
+    (puzzles : Types.puzzle list) : Types.puzzle list =
+  puzzles
+  |> List.filter (fun (p : Types.puzzle) -> p.difficulty = difficulty)
+  |> shuffle_list
+
+let choose_puzzle (difficulty : string) (puzzles : Types.puzzle list) :
+    Types.puzzle option =
+  let queue =
+    match Hashtbl.find_opt remaining_by_difficulty difficulty with
+    | Some q -> q
+    | None ->
+        let q = ref (fresh_queue_for_difficulty difficulty puzzles) in
+        Hashtbl.add remaining_by_difficulty difficulty q;
+        q
   in
-  match filtered with
-  | [] -> None
-  | _ ->
-      let index = Random.int (List.length filtered) in
-      Some (List.nth filtered index)
+  match !queue with
+  | puzzle :: rest ->
+      queue := rest;
+      Some puzzle
+  | [] -> (
+      let fresh = fresh_queue_for_difficulty difficulty puzzles in
+      match fresh with
+      | [] -> None
+      | puzzle :: rest ->
+          queue := rest;
+          Some puzzle)

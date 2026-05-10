@@ -36,6 +36,18 @@ open Cs3110_final
 let all_puzzles : Types.puzzle list =
   Parser.load_puzzles "data/ver2_NESTED_puzzles.json"
 
+(* -----------------------------------------------------------------------------
+   DEFAULT DIFFICULTY
+   -----------------------------------------------------------------------------
+   STUB: This is hardcoded to "hard" for now. Once a lobby or difficulty-select
+   page exists, difficulty should be passed as a query parameter on the
+   WebSocket URL (e.g. ws://localhost:8080/ws?difficulty=easy) and extracted
+   from the Dream.request inside ws_handler.
+
+   To change difficulty right now, edit this string. Valid values mirror what is
+   in the JSON: "easy", "medium", "hard".
+   ----------------------------------------------------------------------------- *)
+let default_difficulty : string = "hard"
 
 (* -----------------------------------------------------------------------------
    CONNECTED CLIENTS LIST
@@ -166,9 +178,7 @@ let send_stats (ws : Dream.websocket) (session : Score.session ref) : unit Lwt.t
     =
   let s = !session in
   let total = Score.total_attempts s in
-  let accuracy_pct =
-    if total = 0 then 100 else s.correct_count * 100 / total
-  in
+  let accuracy_pct = if total = 0 then 100 else s.correct_count * 100 / total in
   let sum = Score.make_summary s in
   send_to ws
     (Printf.sprintf "STATS|%d|%d|%d|%d|%d|%s|%d" total s.wrong_count
@@ -223,10 +233,10 @@ let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
   in
   let correct = Game.submit guess !state in
   if correct then begin
-    session :=
-      (match maybe_node with
-      | Some n -> Score.apply_correct_from_puzzle !session !state n
-      | None -> Score.apply_correct !session !state.difficulty 0);
+    (session :=
+       match maybe_node with
+       | Some n -> Score.apply_correct_from_puzzle !session !state n
+       | None -> Score.apply_correct !session !state.difficulty 0);
     let* () = send_bracket ws state in
     let* () = send_progress ws state in
     let exposed = Game.exposed !state in
@@ -251,6 +261,32 @@ let handle_guess (ws : Dream.websocket) (state : Types.puzzle ref)
     _send_incorrect ws guess
   end
 
+(* -----------------------------------------------------------------------------
+   ws_handler: Handle one WebSocket connection (one browser session).
+   -----------------------------------------------------------------------------
+   Dream calls this function whenever a browser opens ws://localhost:8080/ws.
+
+   STEP-BY-STEP: 1. Register the socket in [clients] for potential future
+   broadcast_all use. 2. Pick a fresh puzzle via Parser.choose_puzzle using
+   [default_difficulty]. Each call to choose_puzzle uses Random.self_init so
+   sessions get different puzzles (or the same one by chance if the pool is
+   small). 3. If no puzzle matches the difficulty (shouldn't happen with valid
+   data), log the error, send an ERROR| message, and close the socket cleanly.
+   4. Wrap the puzzle in a [ref] so [handle_guess] can read its [solved] flags
+   across the lifetime of the keep_open loop. 5. Send the initial BRACKET| so
+   the player sees the puzzle immediately on connect, before typing anything. 6.
+   Enter [keep_open]: a tail-recursive Lwt loop that blocks on Dream.receive,
+   processes each incoming guess via [handle_guess], and exits when the client
+   disconnects (Dream.receive returns None). 7. [Lwt.finalize] guarantees
+   [remove_client] runs whether the loop exits cleanly or an exception is
+   raised.
+
+   STUB NOTE — difficulty from the browser: To let the player choose difficulty
+   on a lobby page, change game-scripts.js to open the WebSocket with a query
+   param: const ws = new WebSocket(`ws://${location.host}/ws?difficulty=easy`);
+   Then replace [ignore req] and [default_difficulty] here with: let diff =
+   Dream.query req "difficulty" |> Option.value ~default:"hard" in
+   ----------------------------------------------------------------------------- *)
 let handle_hint (ws : Dream.websocket) (state : Types.puzzle ref)
     (session : Score.session ref) (chip_body : string) : unit Lwt.t =
   match Game.hint_first_letter chip_body !state with
@@ -287,19 +323,26 @@ let handle_reveal (ws : Dream.websocket) (state : Types.puzzle ref)
   else Lwt.return_unit
 
 let ws_handler (req : Dream.request) : Dream.response Lwt.t =
-  let diff =
-    Dream.query req "difficulty" |> Option.value ~default:"hard"
-  in
+  (* STUB: [req] is ignored until difficulty comes from the browser. Replace
+     [ignore req] with query-param extraction when ready. *)
+  ignore req;
   Dream.websocket (fun ws ->
       clients := ws :: !clients;
-      let state_opt = Parser.choose_puzzle diff all_puzzles in
+
+      (* Parser.choose_puzzle returns an option; we handle None explicitly
+         rather than calling Option.get so the server never crashes on bad
+         data. *)
+      let state_opt = Parser.choose_puzzle default_difficulty all_puzzles in
+
+      (* Lwt.finalize ensures cleanup runs even if an exception bubbles up. *)
       Lwt.finalize
         (fun () ->
           match state_opt with
           | None ->
-              Dream.log "No puzzles found for difficulty: %s" diff;
+              Dream.log "No puzzles found for difficulty: %s" default_difficulty;
               send_to ws
-                ("ERROR|No puzzles available for difficulty: " ^ diff)
+                ("ERROR|No puzzles available for difficulty: "
+               ^ default_difficulty)
           | Some puzzle ->
               let state = ref puzzle in
               let session = ref (Score.make_session ()) in
